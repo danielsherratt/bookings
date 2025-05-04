@@ -5,13 +5,13 @@ async function reloadAdmin() {
     fetch('/api/bookings').then(r => r.json())
   ]);
 
-  // Populate teacher dropdown
+  // Populate teacher dropdown (unchanged)
   const sel = document.getElementById('teacher');
   sel.innerHTML = teachers
     .map(t => `<option value="${t.id}">${t.name}</option>`)
     .join('');
 
-  // Render unavailability table
+  // Render unavailability table (unchanged)
   const unavailBody = document.querySelector('#unavail-table tbody');
   const dayNames = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday'};
   unavailBody.innerHTML = unavail.map(u => {
@@ -28,44 +28,49 @@ async function reloadAdmin() {
     `;
   }).join('');
 
+  // Attach delete handlers for unavailability (unchanged)
   document.querySelectorAll('.delete-unavail-btn').forEach(btn => {
     btn.onclick = async () => {
       const id = Number(btn.dataset.id);
       if (!confirm(`Delete unavailability #${id}?`)) return;
       await fetch('/api/unavailability', {
         method: 'DELETE',
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ id })
       });
       reloadAdmin();
     };
   });
 
-  // Render bookings table as before
+  // Render bookings table with Day instead of Date
   const tbody = document.querySelector('#bookings-table tbody');
+  const weekdayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   tbody.innerHTML = bookings.map(b => {
     const teacherName = teachers.find(t => t.id === b.teacher_id)?.name || 'Unknown';
+    const dateObj = new Date(b.booking_date);
+    const dayName = weekdayNames[dateObj.getUTCDay()];
     return `
       <tr>
         <td>${b.id}</td>
         <td>${teacherName}</td>
-        <td>${b.booking_date}</td>
+        <td>${dayName}</td>
         <td>${b.start_time}–${b.end_time}</td>
         <td>${b.parent_name}</td>
         <td>${b.student_name}</td>
         <td>${b.school_name}</td>
-        <td><button class="delete-btn" data-id="${b.id}">Delete</button></td>
+        <td><button class="delete-booking-btn" data-id="${b.id}">Delete</button></td>
       </tr>
     `;
   }).join('');
 
-  document.querySelectorAll('.delete-btn').forEach(btn => {
+  // Attach delete handlers for bookings
+  document.querySelectorAll('.delete-booking-btn').forEach(btn => {
     btn.onclick = async () => {
       const id = Number(btn.dataset.id);
       if (!confirm(`Delete booking #${id}?`)) return;
       await fetch('/api/bookings', {
         method: 'DELETE',
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ id })
       });
       reloadAdmin();
@@ -76,6 +81,7 @@ async function reloadAdmin() {
 document.addEventListener('DOMContentLoaded', () => {
   reloadAdmin();
 
+  // Add unavailability handler (unchanged)
   document.getElementById('add-unavail').onclick = async () => {
     const tId = Number(document.getElementById('teacher').value);
     const days = [...document.querySelectorAll('input[type=checkbox]:checked')]
@@ -86,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     await Promise.all(days.map(d =>
       fetch('/api/unavailability', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ teacher_id: tId, day_of_week: d, start_time: start, end_time: end })
       })
     ));
