@@ -122,5 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
     POPUP.style.display = 'flex';
     FORM_WRAPPER.style.display = 'none';
     RESULTS.innerHTML = '';
+    AVAILABLE_HEADING.style.display = 'none';
   };
 });
