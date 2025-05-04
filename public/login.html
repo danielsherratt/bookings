@@ -1,0 +1,148 @@
+<!-- 
+Run npx pagecrypt Source.html Output.html password
+Copy Pre from Output.html into this page at bottom of file
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin: NZSL Tutor Bookings Dashboard</title>
+    <script type="module">var i={};Object.defineProperty(i,"__esModule",{value:!0});function y(r,e,t){var c;if(t===void 0&&(t={}),!e.codes){e.codes={};for(var s=0;s<e.chars.length;++s)e.codes[e.chars[s]]=s}if(!t.loose&&r.length*e.bits&7)throw new SyntaxError("Invalid padding");for(var a=r.length;r[a-1]==="=";)if(--a,!t.loose&&!((r.length-a)*e.bits&7))throw new SyntaxError("Invalid padding");for(var o=new((c=t.out)!=null?c:Uint8Array)(a*e.bits/8|0),n=0,u=0,l=0,f=0;f<a;++f){var E=e.codes[r[f]];if(E===void 0)throw new SyntaxError("Invalid character "+r[f]);u=u<<e.bits|E,n+=e.bits,n>=8&&(n-=8,o[l++]=255&u>>n)}if(n>=e.bits||255&u<<8-n)throw new SyntaxError("Unexpected end of data");return o}function h(r,e,t){t===void 0&&(t={});for(var c=t,s=c.pad,a=s===void 0?!0:s,o=(1<<e.bits)-1,n="",u=0,l=0,f=0;f<r.length;++f)for(l=l<<8|255&r[f],u+=8;u>e.bits;)u-=e.bits,n+=e.chars[o&l>>u];if(u&&(n+=e.chars[o&l<<e.bits-u]),a)for(;n.length*e.bits&7;)n+="=";return n}var L={chars:"0123456789ABCDEF",bits:4},K={chars:"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567",bits:5},O={chars:"0123456789ABCDEFGHIJKLMNOPQRSTUV",bits:5},$={chars:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",bits:6},P={chars:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",bits:6},F={parse:function(e,t){return y(e.toUpperCase(),L,t)},stringify:function(e,t){return h(e,L,t)}},I={parse:function(e,t){return t===void 0&&(t={}),y(t.loose?e.toUpperCase().replace(/0/g,"O").replace(/1/g,"L").replace(/8/g,"B"):e,K,t)},stringify:function(e,t){return h(e,K,t)}},k={parse:function(e,t){return y(e,O,t)},stringify:function(e,t){return h(e,O,t)}},B={parse:function(e,t){return y(e,$,t)},stringify:function(e,t){return h(e,$,t)}},G={parse:function(e,t){return y(e,P,t)},stringify:function(e,t){return h(e,P,t)}},H={parse:y,stringify:h};i.base16=F;i.base32=I;i.base32hex=k;i.base64=B;i.base64url=G;i.codec=H;i.base16;i.base32;i.base32hex;const J=i.base64;i.base64url;i.codec;function b(r){const e=document.querySelector(r);if(e)return e;throw new Error(`No element found with selector: "${r}"`)}const d=b("input"),m=b("header"),j=b("#msg"),g=b("form"),v=b("#load");let N,D,M,T;document.addEventListener("DOMContentLoaded",async()=>{const r=b("pre[data-i]");if(!r.innerText){d.disabled=!0,S("No encrypted payload.");return}T=Number(r.dataset.i);const e=J.parse(r.innerText);if(N=e.slice(0,32),D=e.slice(32,32+16),M=e.slice(32+16),location.hash){const t=new URL(window.location.href);d.value=t.hash.slice(1),t.hash="",history.replaceState(null,"",t.toString())}sessionStorage.k||d.value?await U():(w(v),x(g),m.classList.replace("hidden","flex"),d.focus())});var A,C;const p=((A=window.crypto)==null?void 0:A.subtle)||((C=window.crypto)==null?void 0:C.webkitSubtle);p||(S("Please use a modern browser."),d.disabled=!0);function x(r){r.classList.remove("hidden")}function w(r){r.classList.add("hidden")}function S(r){j.innerText=r,m.classList.add("red")}g.addEventListener("submit",async r=>{r.preventDefault(),await U()});async function R(r){return new Promise(e=>setTimeout(e,r))}async function U(){v.lastElementChild.innerText="Checking...",w(m),w(g),x(v),await R(60);try{const r=await V({salt:N,iv:D,ciphertext:M,iterations:T},d.value);document.write(r),document.close()}catch(r){w(v),x(g),m.classList.replace("hidden","flex"),sessionStorage.k?sessionStorage.removeItem("k"):S("Try again, or contact Dean/IT"),d.value="",d.focus()}}async function q(r,e,t){const c=new TextEncoder,s=await p.importKey("raw",c.encode(e),"PBKDF2",!1,["deriveKey"]);return await p.deriveKey({name:"PBKDF2",salt:r,iterations:t,hash:"SHA-256"},s,{name:"AES-GCM",length:256},!0,["decrypt"])}async function Q(r){return p.importKey("jwk",r,"AES-GCM",!0,["decrypt"])}async function V({salt:r,iv:e,ciphertext:t,iterations:c},s){const a=new TextDecoder,o=sessionStorage.k?await Q(JSON.parse(sessionStorage.k)):await q(r,s,c),n=new Uint8Array(await p.decrypt({name:"AES-GCM",iv:e},o,t));if(!n)throw"Malformed data";return sessionStorage.k=JSON.stringify(await p.exportKey("jwk",o)),a.decode(n)}</script>
+
+
+<style>
+
+
+.hidden{
+    display:none!important
+}
+
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+  
+        
+        #dialogWrap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: table;
+            background-color: #EEEEEE;
+        }
+        
+        #dialogWrapCell {
+            display: table-cell;
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        #mainDialog {
+            max-width: 400px;
+            margin: 5px;
+            border: solid #AAAAAA 1px;
+            border-radius: 10px;
+            box-shadow: 3px 3px 5px 3px #AAAAAA;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: #FFFFFF;
+            overflow: hidden;
+            text-align: left;
+padding:10px;
+        }
+        #mainDialog > * {
+            padding: 10px 30px;
+        }
+        #passArea {
+            background-color: white;
+        }
+        #passArea > * {
+            margin: 5px auto;
+        }
+
+        
+        #messageWrapper {
+            float: left;
+            vertical-align: middle;
+            line-height: 30px;
+        }
+
+     #pwd {
+            width: 100%;
+            height: 30px;
+            font-size: 20px;
+        }
+
+        #submitPass {
+margin-top:10px;
+            font-size: 20px;
+            border-radius: 5px;
+            background-color: #E7E7E7;
+            border: solid gray 1px;
+            float: right;
+            cursor: pointer;
+        }
+
+#msg {
+color:red;
+}
+
+/* Logo area */
+.logo {
+  margin-bottom: 24px;
+}
+.logo img {
+  max-width: 180px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+</style>
+
+</head>
+<body>
+
+
+<div id="dialogWrap">
+<div id="dialogWrapCell">
+<div id="mainDialog">
+
+<div id="load">
+<p class="spinner"></p><p>Loading...</p>
+</div>
+
+<header class="hidden">
+
+<div style="display:grid; grid-template-columns: auto auto;">
+    <div class="logo">
+        <img src="https://bookings-gau.pages.dev/public/assets/logo.png" alt="Your Logo">
+      </div>  
+<div><h1 style="color:#00625f">Admin Dashboard</h1><p>Once in, Please bookmark the page for faster access!</p></div>
+</div>
+
+</header>
+
+<div id="passArea">
+<form class="hidden">
+<input type="password" id="pwd" name="pwd" aria-label="Password" autofocus placeholder=""/>
+<input type="submit" value="Go" id="submitPass">
+</form>
+<p id="msg"></p>
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- Pre from Output.html goes below -->
+  <pre class="hidden" data-i="2e+6">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</pre>
+  </body>
+</html>
