@@ -16,7 +16,9 @@
     <select id="teacher"></select><br/>
     <label>Day(s):</label><br/>
     <label><input type="checkbox" value="1"/> Monday</label>
-    <!-- … -->
+    <label><input type="checkbox" value="2"/> Tuesday</label>
+    <label><input type="checkbox" value="3"/> Wednesday</label>
+    <label><input type="checkbox" value="4"/> Thursday</label>
     <label><input type="checkbox" value="5"/> Friday</label><br/>
     <label for="start">Start Time:</label>
     <input type="time" id="start" value="08:30"/>
@@ -25,7 +27,18 @@
     <button id="add-unavail">Add Unavailability</button>
 
     <h2>Existing Unavailability</h2>
-    <pre id="out-unavail"></pre>
+    <table id="unavail-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Teacher</th>
+          <th>Day</th>
+          <th>Time</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
     <!-- Bookings Section -->
     <h2>Existing Bookings</h2>

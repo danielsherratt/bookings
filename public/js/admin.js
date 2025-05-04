@@ -1,19 +1,47 @@
 async function reloadAdmin() {
-  // Fetch teachers and unavailability
   const [teachers, unavail, bookings] = await Promise.all([
     fetch('/api/teachers').then(r => r.json()),
     fetch('/api/unavailability').then(r => r.json()),
     fetch('/api/bookings').then(r => r.json())
   ]);
 
-  // Populate teacher select
+  // Populate teacher dropdown
   const sel = document.getElementById('teacher');
-  sel.innerHTML = teachers.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  sel.innerHTML = teachers
+    .map(t => `<option value="${t.id}">${t.name}</option>`)
+    .join('');
 
-  // Show unavailability JSON
-  document.getElementById('out-unavail').textContent = JSON.stringify(unavail, null, 2);
+  // Render unavailability table
+  const unavailBody = document.querySelector('#unavail-table tbody');
+  const dayNames = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday'};
+  unavailBody.innerHTML = unavail.map(u => {
+    const teacher = teachers.find(t => t.id === u.teacher_id)?.name || 'Unknown';
+    const day = dayNames[u.day_of_week] || u.day_of_week;
+    return `
+      <tr>
+        <td>${u.id}</td>
+        <td>${teacher}</td>
+        <td>${day}</td>
+        <td>${u.start_time}–${u.end_time}</td>
+        <td><button class="delete-unavail-btn" data-id="${u.id}">Delete</button></td>
+      </tr>
+    `;
+  }).join('');
 
-  // Populate bookings table
+  document.querySelectorAll('.delete-unavail-btn').forEach(btn => {
+    btn.onclick = async () => {
+      const id = Number(btn.dataset.id);
+      if (!confirm(`Delete unavailability #${id}?`)) return;
+      await fetch('/api/unavailability', {
+        method: 'DELETE',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ id })
+      });
+      reloadAdmin();
+    };
+  });
+
+  // Render bookings table as before
   const tbody = document.querySelector('#bookings-table tbody');
   tbody.innerHTML = bookings.map(b => {
     const teacherName = teachers.find(t => t.id === b.teacher_id)?.name || 'Unknown';
@@ -31,15 +59,14 @@ async function reloadAdmin() {
     `;
   }).join('');
 
-  // Attach delete handlers
   document.querySelectorAll('.delete-btn').forEach(btn => {
     btn.onclick = async () => {
-      const id = btn.dataset.id;
+      const id = Number(btn.dataset.id);
       if (!confirm(`Delete booking #${id}?`)) return;
       await fetch('/api/bookings', {
         method: 'DELETE',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ id: Number(id) })
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ id })
       });
       reloadAdmin();
     };
@@ -49,17 +76,17 @@ async function reloadAdmin() {
 document.addEventListener('DOMContentLoaded', () => {
   reloadAdmin();
 
-  // Add unavailability as before
   document.getElementById('add-unavail').onclick = async () => {
-    const tId = +document.getElementById('teacher').value;
-    const days = [...document.querySelectorAll('input[type=checkbox]:checked')].map(cb => +cb.value);
+    const tId = Number(document.getElementById('teacher').value);
+    const days = [...document.querySelectorAll('input[type=checkbox]:checked')]
+      .map(cb => Number(cb.value));
     const start = document.getElementById('start').value;
     const end   = document.getElementById('end').value;
 
     await Promise.all(days.map(d =>
       fetch('/api/unavailability', {
         method: 'POST',
-        headers: {'Content-Type':'application/json'},
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ teacher_id: tId, day_of_week: d, start_time: start, end_time: end })
       })
     ));
