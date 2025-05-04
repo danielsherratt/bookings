@@ -54,7 +54,7 @@ async function reloadAdmin() {
         <td>${dayName}</td>
         <td>${b.start_time}–${b.end_time}</td>
         <td>${b.parent_name}</td>
-        <td>a href="mailto:${b.parent_email}">${b.parent_email}</a></td>
+        <td><a href="mailto:${b.parent_email}">${b.parent_email}</a></td>
         <td>${b.student_name}</td>
         <td>${b.school_name}</td>
         <td><button class="delete-booking-btn" data-id="${b.id}">Delete</button></td>
