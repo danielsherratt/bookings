@@ -14,12 +14,13 @@
     <option value="2">Tuesday</option>
     <option value="3">Wednesday</option>
     <option value="4">Thursday</option>
+    <option value="5">Monday</option>
+	
     <option value="5">Friday</option>
   </select>
 
   <label for="time">Time:</label>
   <select id="time"></select>
-
   <button id="find">Find Available Teachers</button>
 
   <div id="results"></div>
@@ -27,9 +28,9 @@
   <div id="booking-form" style="display:none;">
     <h2>Confirm Booking with <span id="teacher-name"></span></h2>
     <form id="form">
-      <input name="parent_name" placeholder="Parent Name" required /><br/>
+      <input name="parent_name"  placeholder="Parent Name"  required /><br/>
       <input name="student_name" placeholder="Student Name" required /><br/>
-      <input name="school_name" placeholder="School Name" required /><br/>
+      <input name="school_name"  placeholder="School Name"  required /><br/>
       <button type="submit">Book</button>
     </form>
   </div>
