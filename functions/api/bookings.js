@@ -80,17 +80,26 @@ Student: ${student_name}
 School: ${school_name}`
     };
 
-    // 4) Send both emails via MailerLite API
-    const send = payload => fetch(
-      'https://api.mailerlite.com/api/v2/email/send', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${env.MAILERLITE_API_KEY}`
-        },
-        body: JSON.stringify(payload)
-    });
+    // 4) Send both emails via MailerLite API, with logging
+    const send = async payload => {
+      const res = await fetch(
+        'https://api.mailerlite.com/api/v2/email/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${env.MAILERLITE_API_KEY}`
+          },
+          body: JSON.stringify(payload)
+      });
+      // Log response for debugging
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('MailerLite send error:', res.status, text);
+      }
+      return res;
+    };
 
+    // Execute sends
     await Promise.all([ send(parentPayload), send(adminPayload) ]);
 
     return new Response(null, { status: 201 });
