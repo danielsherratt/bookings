@@ -7,6 +7,9 @@ async function reloadAdmin() {
     fetch('/api/bookings').then(r => r.json())
   ]);
 
+  // Build a map: teacher ID -> name
+  const teacherMap = Object.fromEntries(teachers.map(t => [t.id, t.name]));
+  
   // Populate teacher dropdown for unavailability
   const sel = document.getElementById('teacher-unavail');
   sel.innerHTML = teachers
