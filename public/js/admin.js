@@ -19,7 +19,6 @@ async function reloadAdmin() {
     const day = dayNames[u.day_of_week] || u.day_of_week;
     return `
       <tr>
-        <td>${u.id}</td>
         <td>${teacher}</td>
         <td>${day}</td>
         <td>${u.start_time}–${u.end_time}</td>
@@ -51,7 +50,6 @@ async function reloadAdmin() {
     const dayName = weekdayNames[dateObj.getUTCDay()];
     return `
       <tr>
-        <td>${b.id}</td>
         <td>${teacherName}</td>
         <td>${dayName}</td>
         <td>${b.start_time}–${b.end_time}</td>
