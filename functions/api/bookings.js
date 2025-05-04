@@ -8,15 +8,15 @@ export async function onRequest(context) {
     const url = new URL(request.url);
     const date = url.searchParams.get('date');
     const stmt = date
-      ? DB.prepare(`SELECT * FROM Bookings WHERE booking_date = ?`).bind(date)
-      : DB.prepare(`SELECT * FROM Bookings`);
+      ? DB.prepare('SELECT * FROM Bookings WHERE booking_date = ?').bind(date)
+      : DB.prepare('SELECT * FROM Bookings');
     const { results } = await stmt.all();
     return new Response(JSON.stringify(results), {
       headers: { 'Content-Type': 'application/json' }
     });
   }
 
-  // POST: create booking and send emails via MailerLite
+  // POST: create booking and send emails via Mailgun
   if (request.method === 'POST') {
     // 1) Parse booking data
     const {
@@ -49,58 +49,51 @@ export async function onRequest(context) {
     )
     .run();
 
-    // 3) Prepare MailerLite payloads
-    const parentPayload = {
-      from: { email: env.ADMIN_EMAIL },
-      to:    [{ email: parent_email }],
-      subject: 'Your Booking Confirmation',
-      plain:  `Hi ${parent_name},
+    // 3) Prepare Mailgun auth and payloads
+    const auth = 'Basic ' + btoa(`api:${env.MAILGUN_API_KEY}`);
 
-` +
-              `Your booking on ${date} at ${start_time} has been confirmed.
+    // Parent email
+    const parentParams = new URLSearchParams();
+    parentParams.append('from', env.SENDER_EMAIL);
+    parentParams.append('to', parent_email);
+    parentParams.append('subject', 'Your Booking Confirmation');
+    parentParams.append('text',
+      `Hi ${parent_name},\n\n` +
+      `Your booking on ${date} at ${start_time} has been confirmed.\n\n` +
+      `Teacher ID: ${teacher_id}\nStudent: ${student_name}\nSchool: ${school_name}`
+    );
 
-` +
-              `Teacher ID: ${teacher_id}
-Student: ${student_name}
-School: ${school_name}`
-    };
+    // Admin copy
+    const adminParams = new URLSearchParams();
+    adminParams.append('from', env.SENDER_EMAIL);
+    adminParams.append('to', env.ADMIN_EMAIL);
+    adminParams.append('subject', 'New Booking Received');
+    adminParams.append('text',
+      `New booking details:\n` +
+      `Teacher ID: ${teacher_id}\nDate: ${date}\nTime: ${start_time}-${end_time}\n` +
+      `Parent: ${parent_name} <${parent_email}>\nStudent: ${student_name}\nSchool: ${school_name}`
+    );
 
-    const adminPayload = {
-      from: { email: env.ADMIN_EMAIL },
-      to:    [{ email: env.ADMIN_EMAIL }],
-      subject: 'New Booking Received',
-      plain:  `New booking details:
-` +
-              `Teacher ID: ${teacher_id}
-Date: ${date}
-Time: ${start_time}-${end_time}
-` +
-              `Parent: ${parent_name} <${parent_email}>
-Student: ${student_name}
-School: ${school_name}`
-    };
-
-    // 4) Send both emails via MailerLite API, with logging
-    const send = async payload => {
-      const res = await fetch(
-        'https://api.mailerlite.com/api/v2/email/send', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${env.MAILERLITE_API_KEY}`
-          },
-          body: JSON.stringify(payload)
-      });
-      // Log response for debugging
-      if (!res.ok) {
-        const text = await res.text();
-        console.error('MailerLite send error:', res.status, text);
-      }
-      return res;
-    };
-
-    // Execute sends
-    await Promise.all([ send(parentPayload), send(adminPayload) ]);
+    // 4) Send both via Mailgun
+    const url = `https://api.mailgun.net/v3/${env.MAILGUN_DOMAIN}/messages`;
+    await Promise.all([
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': auth,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: parentParams
+      }),
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': auth,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: adminParams
+      })
+    ]);
 
     return new Response(null, { status: 201 });
   }
@@ -108,10 +101,9 @@ School: ${school_name}`
   // DELETE: remove a booking by ID
   if (request.method === 'DELETE') {
     const { id } = await request.json();
-    await DB.prepare(`DELETE FROM Bookings WHERE id = ?`).bind(id).run();
+    await DB.prepare('DELETE FROM Bookings WHERE id = ?').bind(id).run();
     return new Response(null, { status: 204 });
   }
 
-  // All other methods not allowed
   return new Response('Method Not Allowed', { status: 405 });
 }
