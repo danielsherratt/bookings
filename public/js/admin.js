@@ -14,7 +14,6 @@ async function reloadAdmin() {
   const days = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday'};
   ut.innerHTML = unavail.map(u =>
     `<tr>
-      <td>${u.id}</td>
       <td>${u.teacher_name}</td>
       <td>${days[u.day_of_week]}</td>
       <td>${u.start_time}–${u.end_time}</td>
@@ -31,8 +30,7 @@ async function reloadAdmin() {
   const bt = document.getElementById('bookings-table');
   bt.innerHTML = bookings.map(b =>
     `<tr>
-      <td>${b.id}</td>
-      <td>${b.teacher_name || b.teacher_id}</td>
+      <td>${b.teacher_name}</td>
       <td>${new Date(b.booking_date).toLocaleDateString('en-US', { weekday:'long' })}</td>
       <td>${b.start_time}–${b.end_time}</td>
       <td>${b.parent_name}</td>
@@ -52,7 +50,6 @@ async function reloadAdmin() {
   const tt = document.getElementById('teachers-table');
   tt.innerHTML = teachers.map(t =>
     `<tr>
-      <td>${t.id}</td>
       <td>${t.name}</td>
       <td><button class="delete-teacher-btn" data-id="${t.id}">Delete</button></td>
     </tr>`
