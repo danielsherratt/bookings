@@ -27,17 +27,17 @@
     <select id="time"></select>
     <br>
     <button id="find">Find Available Teachers</button>
-    
+
     <h2 id="available-heading" style="display:none;">Available Teachers</h2>
     <div id="results"></div>
 
     <div id="booking-form" style="display:none;" class="booking-form">
       <h2>Confirm Booking with <span id="teacher-name"></span></h2>
       <form id="form">
-        <input name="parent_name" placeholder="Parent Name" required /><br/>
+        <input name="parent_name" type="text" placeholder="Parent Name" required /><br/>
         <input name="parent_email" type="email" placeholder="Parent Email" required /><br/>
-        <input name="student_name" placeholder="Student Name" required /><br/>
-        <input name="school_name" placeholder="School Name" required /><br/>
+        <input name="student_name" type="text" laceholder="Student Name" required /><br/>
+        <input name="school_name" type="text" placeholder="School Name" required /><br/>
         <button type="submit">Book</button>
       </form>
     </div>
