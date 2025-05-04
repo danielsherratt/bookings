@@ -40,7 +40,7 @@ async function reloadAdmin() {
   const weekdayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   bt.innerHTML = bookings.map(b => `
     <tr>
-      <td>${b.teacher_name}</td>
+      <td>${teacherMap[b.teacher_id] || 'Unknown'}</td>
       <td>${weekdayNames[new Date(b.booking_date).getUTCDay()]}</td>
       <td>${b.start_time}–${b.end_time}</td>
       <td>${b.parent_name}</td>
