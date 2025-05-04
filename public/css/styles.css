@@ -146,3 +146,15 @@ th {
 #confirmation-popup .close-btn:hover {
   color: #72a546;
 }
+
+a,
+a.visted {
+  color:#003541;
+  text-decoration: underline;
+}
+
+a:hover,
+a.visted:hover {
+  color:#003541;
+  text-decoration: none;
+}
