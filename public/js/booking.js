@@ -5,15 +5,20 @@ const RESULTS = document.getElementById('results');
 const FORM_WRAPPER = document.getElementById('booking-form');
 const TEACHER_NAME = document.getElementById('teacher-name');
 const AVAILABLE_HEADING = document.getElementById('available-heading');
+const POPUP = document.getElementById('confirmation-popup');
+const CLOSE_BTN = POPUP.querySelector('.close-btn');
 
 let selectedTeacher, selectedDate, selectedStart;
 
-function pad(n) { return n.toString().padStart(2, '0'); }
+function pad(n) {
+  return n.toString().padStart(2, '0');
+}
+
 function populateTimes() {
   TIME.innerHTML = '';
   for (let h = 8; h <= 16; h++) {
     [0,30].forEach(m => {
-      if (h===16 && m>0) return;
+      if (h === 16 && m > 0) return;
       const t = `${pad(h)}:${pad(m)}`;
       const opt = document.createElement('option');
       opt.value = t;
@@ -22,9 +27,14 @@ function populateTimes() {
     });
   }
 }
-function slotEndTime(s) {
-  let [h,m] = s.split(':').map(Number);
-  m += 30; if(m>=60) { h++; m-=60; }
+
+function slotEndTime(start) {
+  let [h, m] = start.split(':').map(Number);
+  m += 30;
+  if (m >= 60) {
+    h++;
+    m -= 60;
+  }
   return `${pad(h)}:${pad(m)}`;
 }
 
@@ -84,24 +94,32 @@ async function findTeachers() {
 document.addEventListener('DOMContentLoaded', () => {
   populateTimes();
   FIND.onclick = findTeachers;
+
+  CLOSE_BTN.onclick = () => {
+    POPUP.style.display = 'none';
+  };
+
   document.getElementById('form').onsubmit = async e => {
     e.preventDefault();
     const data = {
-      teacher_id: selectedTeacher.id,
-      date: selectedDate.toISOString().slice(0,10),
-      start_time: selectedStart,
-      end_time: slotEndTime(selectedStart),
-      parent_name: e.target.parent_name.value,
+      teacher_id:   selectedTeacher.id,
+      date:         selectedDate.toISOString().slice(0,10),
+      start_time:   selectedStart,
+      end_time:     slotEndTime(selectedStart),
+      parent_name:  e.target.parent_name.value,
       parent_email: e.target.parent_email.value,
       student_name: e.target.student_name.value,
-      school_name: e.target.school_name.value
+      school_name:  e.target.school_name.value
     };
+
     await fetch('/api/bookings', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
       body: JSON.stringify(data)
     });
-    alert('Booking created!');
+
+    // Show confirmation popup
+    POPUP.style.display = 'flex';
     FORM_WRAPPER.style.display = 'none';
     RESULTS.innerHTML = '';
   };
