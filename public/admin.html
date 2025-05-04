@@ -1,30 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"/>
+<head>
+  <meta charset="UTF-8"/>
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css"/>
-  <title>Admin: Unavailability</title>
+  <title>Admin: Unavailability & Bookings</title>
 </head>
 <body>
-  <h1>Teacher Unavailability</h1>
+  <div class="container" id="admin-form">
+    <h1>Teacher Admin Dashboard</h1>
 
-  <label for="teacher">Teacher:</label>
-  <select id="teacher"></select><br/>
+    <!-- Unavailability Section -->
+    <h2>Set Unavailability</h2>
+    <label for="teacher">Teacher:</label>
+    <select id="teacher"></select><br/>
+    <label>Day(s):</label><br/>
+    <label><input type="checkbox" value="1"/> Monday</label>
+    <!-- … -->
+    <label><input type="checkbox" value="5"/> Friday</label><br/>
+    <label for="start">Start Time:</label>
+    <input type="time" id="start" value="08:30"/>
+    <label for="end">End Time:</label>
+    <input type="time" id="end" value="12:00"/><br/>
+    <button id="add-unavail">Add Unavailability</button>
 
-  <label>Day(s):</label><br/>
-  <label><input type="checkbox" value="1"/> Monday</label>
-  <!-- … Friday -->
-  <label><input type="checkbox" value="5"/> Friday</label><br/>
+    <h2>Existing Unavailability</h2>
+    <pre id="out-unavail"></pre>
 
-  <label for="start">Start:</label>
-  <input type="time" id="start" value="08:30"/>
-  <label for="end">End:</label>
-  <input type="time" id="end"   value="12:00"/><br/>
-
-  <button id="add">Add</button>
-
-  <h2>Existing Records</h2>
-  <pre id="out"></pre>
-
+    <!-- Bookings Section -->
+    <h2>Existing Bookings</h2>
+    <table id="bookings-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Teacher</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Parent</th>
+          <th>Student</th>
+          <th>School</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
   <script src="js/admin.js"></script>
 </body>
 </html>
