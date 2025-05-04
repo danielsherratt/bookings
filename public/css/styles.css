@@ -70,6 +70,7 @@ button {
   font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  margin: 5px;
 }
 
 button:hover {
@@ -133,6 +134,12 @@ th {
   top: 8px; right: 8px;
   background: transparent;
   border: none;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #003541;
   cursor: pointer;
+  z-index: 10;
+}
+#confirmation-popup .close-btn:hover {
+  color: #72a546;
 }
