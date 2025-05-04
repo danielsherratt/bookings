@@ -49,18 +49,30 @@ export async function onRequest(context) {
     )
     .run();
 
-    // 3) Prepare Mailgun auth and payloads
+    // 3) Look up teacher name
+    const { results: teacherRows } = await DB.prepare(
+      'SELECT name FROM Teachers WHERE id = ?'
+    ).bind(teacher_id).all();
+    const teacherName = teacherRows[0]?.name || 'Unknown Teacher';
+
+    // 4) Compute day name
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const dayName = dayNames[new Date(date).getUTCDay()];
+
+    // 5) Prepare Mailgun auth and payloads
     const auth = 'Basic ' + btoa(`api:${env.MAILGUN_API_KEY}`);
+    const url = `https://api.mailgun.net/v3/${env.MAILGUN_DOMAIN}/messages`;
 
     // Parent email
     const parentParams = new URLSearchParams();
     parentParams.append('from', env.SENDER_EMAIL);
     parentParams.append('to', parent_email);
-    parentParams.append('subject', 'Your Booking Confirmation');
+    parentParams.append('subject', 'Your Booking Submission');
     parentParams.append('text',
       `Hi ${parent_name},\n\n` +
-      `Your booking on ${date} at ${start_time} has been confirmed.\n\n` +
-      `Teacher ID: ${teacher_id}\nStudent: ${student_name}\nSchool: ${school_name}`
+      `Your booking with ${teacherName} on ${dayName} at ${start_time} for ${student_name} (${school_name})  has been submitted.\n\n` +
+      `Ko Taku Reo will confirm this booking shortly.\n\n` +
+      `\n\nThank you!`
     );
 
     // Admin copy
@@ -70,12 +82,11 @@ export async function onRequest(context) {
     adminParams.append('subject', 'New Booking Received');
     adminParams.append('text',
       `New booking details:\n` +
-      `Teacher ID: ${teacher_id}\nDate: ${date}\nTime: ${start_time}-${end_time}\n` +
+      `Teacher: ${teacherName}\nDay: ${dayName}\nTime: ${start_time}-${end_time}\n` +
       `Parent: ${parent_name} <${parent_email}>\nStudent: ${student_name}\nSchool: ${school_name}`
     );
 
-    // 4) Send both via Mailgun
-    const url = `https://api.mailgun.net/v3/${env.MAILGUN_DOMAIN}/messages`;
+    // 6) Send both via Mailgun
     await Promise.all([
       fetch(url, {
         method: 'POST',
@@ -105,5 +116,6 @@ export async function onRequest(context) {
     return new Response(null, { status: 204 });
   }
 
+  // All other methods not allowed
   return new Response('Method Not Allowed', { status: 405 });
 }
