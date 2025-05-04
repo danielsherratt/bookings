@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="stylesheet" href="css/styles.css"/>
+  <title>Admin: Teacher Unavailability</title>
+</head>
+<body>
+  <h1>Set Teacher Unavailability</h1>
+
+  <label for="teacher">Teacher:</label>
+  <select id="teacher"></select><br/>
+
+  <label>Day(s):</label><br/>
+  <label><input type="checkbox" value="1"/> Monday</label>
+  <label><input type="checkbox" value="2"/> Tuesday</label>
+  <label><input type="checkbox" value="3"/> Wednesday</label>
+  <label><input type="checkbox" value="4"/> Thursday</label>
+  <label><input type="checkbox" value="5"/> Friday</label><br/>
+
+  <label for="start">Start Time:</label>
+  <input type="time" id="start" value="08:30"/>
+
+  <label for="end">End Time:</label>
+  <input type="time" id="end" value="12:00"/><br/>
+
+  <button id="add">Add Unavailability</button>
+
+  <h2>Current Records (JSON)</h2>
+  <textarea id="out" rows="10" style="width:100%;"></textarea>
+  
+  <script src="js/admin.js"></script>
+</body>
+</html>
