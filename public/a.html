@@ -4,11 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="css/styles.css" rel="stylesheet">
-  <title>Admin Dashboard</title>
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <title>Admin: NZSL Tutor Bookings</title>
 </head>
 <body>
   <div class="container">
-    <h1>Admin Dashboard</h1>
+    <h1>Admin: NZSL Tutor Bookings</h1>
 
     <!-- Unavailability Section -->
     <h2>Set Unavailability</h2>
@@ -24,18 +25,19 @@
     <input type="time" id="start-unavail" value="08:30">
     <label>End Time:</label>
     <input type="time" id="end-unavail" value="12:00">
+    <br>
     <button id="add-unavail">Add Unavailability</button>
 
     <h3>Existing Unavailability</h3>
     <table>
-      <thead><tr><th>ID</th><th>Teacher</th><th>Day</th><th>Time</th><th>Action</th></tr></thead>
+      <thead><tr><th>Teacher</th><th>Day</th><th>Time</th><th>Action</th></tr></thead>
       <tbody id="unavail-table"></tbody>
     </table>
 
     <!-- Bookings Section -->
     <h2>Existing Bookings</h2>
     <table>
-      <thead><tr><th>ID</th><th>Teacher</th><th>Day</th><th>Time</th><th>Parent</th><th>Email</th><th>Student</th><th>School</th><th>Action</th></tr></thead>
+      <thead><tr><th>Teacher</th><th>Day</th><th>Time</th><th>Parent</th><th>Email</th><th>Student</th><th>School</th><th>Action</th></tr></thead>
       <tbody id="bookings-table"></tbody>
     </table>
 
@@ -46,7 +48,7 @@
       <button>Add Teacher</button>
     </form>
     <table>
-      <thead><tr><th>ID</th><th>Name</th><th>Action</th></tr></thead>
+      <thead><tr><th>Name</th><th>Action</th></tr></thead>
       <tbody id="teachers-table"></tbody>
     </table>
   </div>

@@ -96,7 +96,8 @@ th {
 
 .delete-btn,
 .delete-unavail-btn,
-.delete-booking-btn
+.delete-booking-btn,
+.delete-teacher-btn
  {
   background-color: transparent;
   color: #003541;
@@ -108,7 +109,8 @@ th {
 
 .delete-btn:hover,
 .delete-booking-btn:hover,
-.delete-unavail-btn:hover {
+.delete-unavail-btn:hover,
+.delete-teacher-btn:hover {
   background-color: #003541;
   color: #ffffff;
 }
