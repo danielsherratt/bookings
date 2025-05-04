@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('add-unavail').onclick = async () => {
     try {
       const tId = Number(document.getElementById('teacher-unavail').value);
-      const checkboxes = document.querySelectorAll('#admin-form input[type=checkbox]:checked');
+      const checkboxes = document.querySelectorAll('input[name="unavail-day"]:checked');
       const days = Array.from(checkboxes).map(cb => Number(cb.value));
       const start = document.getElementById('start-unavail').value;
       const end = document.getElementById('end-unavail').value;
