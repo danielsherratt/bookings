@@ -1,16 +1,18 @@
-const TYPE    = document.getElementById('type');
-const ZOOM_DIV = document.getElementById('zoom-controls');
-const INP_DIV  = document.getElementById('inperson-controls');
-const DAY1     = document.getElementById('day');
-const TIME     = document.getElementById('time');
-const DAY2     = document.getElementById('day2');
-const SLOT_BTNS = document.querySelectorAll('.slot-btn');
-const FIND     = document.getElementById('find');
-const RESULTS  = document.getElementById('results');
-const FORM_WR  = document.getElementById('booking-form');
-const TNAME    = document.getElementById('teacher-name');
-const POPUP    = document.getElementById('confirmation-popup');
-const CLOSE    = POPUP.querySelector('.close-btn');
+// public/js/booking.js
+
+const TYPE       = document.getElementById('type');
+const ZOOM_DIV   = document.getElementById('zoom-controls');
+const INP_DIV    = document.getElementById('inperson-controls');
+const DAY1       = document.getElementById('day');
+const TIME       = document.getElementById('time');
+const DAY2       = document.getElementById('day2');
+const SLOT_BTNS  = document.querySelectorAll('.slot-btn');
+const FIND       = document.getElementById('find');
+const RESULTS    = document.getElementById('results');
+const FORM_WR    = document.getElementById('booking-form');
+const TNAME      = document.getElementById('teacher-name');
+const POPUP      = document.getElementById('confirmation-popup');
+const CLOSE      = POPUP.querySelector('.close-btn');
 
 let selectedTeacher, selDate, selStart, selEnd;
 let selectedSlot = 'am'; // default for in-person
@@ -34,7 +36,7 @@ function slotEnd(s){
 }
 
 // Toggle controls on type change
-TYPE.onchange = () => {
+TYPE.addEventListener('change', () => {
   if(TYPE.value === 'zoom') {
     ZOOM_DIV.style.display = 'block';
     INP_DIV.style.display  = 'none';
@@ -42,27 +44,39 @@ TYPE.onchange = () => {
     ZOOM_DIV.style.display = 'none';
     INP_DIV.style.display  = 'block';
   }
-};
+});
 
 // Slot button behavior
 SLOT_BTNS.forEach(btn => {
-  btn.onclick = () => {
+  btn.addEventListener('click', () => {
     SLOT_BTNS.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    selectedSlot = btn.dataset.slot; // 'am' or 'pm'
-  };
+    selectedSlot = btn.dataset.slot;
+  });
 });
 
-// Main search
+// Safe JSON fetch helper
+async function safeFetchJson(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.error(`Fetch ${url} failed: ${res.status} ${res.statusText}`);
+      return [];
+    }
+    return await res.json();
+  } catch (e) {
+    console.error(`Failed to fetch or parse JSON from ${url}:`, e);
+    return [];
+  }
+}
+
+// Main search function
 async function findTeachers(){
   RESULTS.textContent = 'Loading…';
   document.getElementById('available-heading').style.display = 'none';
 
-  const teachers  = await fetch('/api/teachers').then(r=>r.json());
-  const unavail   = await fetch('/api/unavailability').then(r=>r.json());
-
+  // Determine date & times
   let dow, start, end;
-
   if(TYPE.value === 'zoom'){
     dow   = +DAY1.value;
     start = TIME.value;
@@ -70,41 +84,45 @@ async function findTeachers(){
   } else {
     dow = +DAY2.value;
     if(selectedSlot === 'am'){
-      start = '08:30';
-      end   = '12:30';
+      start = '08:30'; end = '12:30';
     } else {
-      start = '12:30';
-      end   = '16:30';
+      start = '12:30'; end = '16:30';
     }
   }
 
-  // Compute next actual date
-  selDate = new Date();
-  selDate.setDate(
-    selDate.getDate() + ((dow + 7 - selDate.getUTCDay()) % 7)
-  );
+  // Compute actual next date string
+  const now = new Date();
+  now.setDate(now.getDate() + ((dow + 7 - now.getUTCDay()) % 7));
+  selDate = now;
   selStart = start;
   selEnd   = end;
+  const selDateISO = now.toISOString().slice(0,10);
 
-  const bookings = await fetch(
-    `/api/bookings?date=${selDate.toISOString().slice(0,10)}`
-  ).then(r=>r.json());
+  // Fetch data
+  const [teachers, unavail, bookings] = await Promise.all([
+    safeFetchJson('/api/teachers'),
+    safeFetchJson('/api/unavailability'),
+    safeFetchJson(`/api/bookings?date=${selDateISO}`)
+  ]);
+
+  // Build teacher map for names
+  const teacherMap = Object.fromEntries(teachers.map(t => [t.id, t.name]));
 
   // Filter availability
   const avail = teachers.filter(t => {
     if(unavail.some(u =>
-      u.teacher_id===t.id &&
-      u.day_of_week===dow &&
+      u.teacher_id === t.id &&
+      u.day_of_week === dow &&
       !(end <= u.start_time || start >= u.end_time)
     )) return false;
     if(bookings.some(b =>
-      b.teacher_id===t.id &&
+      b.teacher_id === t.id &&
       !(end <= b.start_time || start >= b.end_time)
     )) return false;
     return true;
   });
 
-  if(!avail.length){
+  if(!avail.length) {
     RESULTS.innerHTML = '<p>No teachers available.</p>';
     return;
   }
@@ -115,21 +133,24 @@ async function findTeachers(){
   ).join('');
 
   RESULTS.querySelectorAll('button').forEach(btn => {
-    btn.onclick = () => {
+    btn.addEventListener('click', () => {
       selectedTeacher = { id:+btn.dataset.id, name:btn.dataset.name };
       TNAME.textContent = btn.dataset.name;
       FORM_WR.style.display = 'block';
-    };
+    });
   });
 }
 
-// Init
+// Initialize controls
 populateTimes();
-findTeachers(); // optional auto-load?
-FIND.onclick = findTeachers;
-CLOSE.onclick = () => POPUP.style.display = 'none';
+TYPE.dispatchEvent(new Event('change'));
+SLOT_BTNS[0].click(); // select AM by default
 
-document.getElementById('form').onsubmit = async e => {
+FIND.addEventListener('click', findTeachers);
+CLOSE.addEventListener('click', () => { POPUP.style.display = 'none'; });
+
+// Booking form submission
+document.getElementById('form').addEventListener('submit', async e => {
   e.preventDefault();
   const form = e.target;
   const data = {
@@ -143,12 +164,14 @@ document.getElementById('form').onsubmit = async e => {
     school_name:  form.school_name.value,
     booking_type: TYPE.value
   };
+
   await fetch('/api/bookings', {
     method: 'POST',
     headers:{ 'Content-Type':'application/json' },
     body: JSON.stringify(data)
   });
+
   POPUP.style.display = 'flex';
   FORM_WR.style.display = 'none';
   RESULTS.innerHTML = '';
-};
+});
