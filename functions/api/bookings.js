@@ -1,143 +1,154 @@
-// functions/api/bookings.js
+const TYPE    = document.getElementById('type');
+const ZOOM_DIV = document.getElementById('zoom-controls');
+const INP_DIV  = document.getElementById('inperson-controls');
+const DAY1     = document.getElementById('day');
+const TIME     = document.getElementById('time');
+const DAY2     = document.getElementById('day2');
+const SLOT_BTNS = document.querySelectorAll('.slot-btn');
+const FIND     = document.getElementById('find');
+const RESULTS  = document.getElementById('results');
+const FORM_WR  = document.getElementById('booking-form');
+const TNAME    = document.getElementById('teacher-name');
+const POPUP    = document.getElementById('confirmation-popup');
+const CLOSE    = POPUP.querySelector('.close-btn');
 
-export async function onRequest(context) {
-  const { request, env } = context;
-  const DB = env.DB;
+let selectedTeacher, selDate, selStart, selEnd;
+let selectedSlot = 'am'; // default for in-person
 
-  // GET: list bookings (with teacher_name)
-  if (request.method === 'GET') {
-    const url = new URL(request.url);
-    const date = url.searchParams.get('date');
-    const baseQuery = `
-      SELECT
-        b.id,
-        b.teacher_id,
-        t.name AS teacher_name,
-        b.booking_date,
-        b.start_time,
-        b.end_time,
-        b.parent_name,
-        b.parent_email,
-        b.student_name,
-        b.school_name,
-        b.booking_type
-      FROM Bookings b
-      JOIN Teachers t ON b.teacher_id = t.id
-    `;
-    const stmt = date
-      ? DB.prepare(baseQuery + ' WHERE booking_date = ?').bind(date)
-      : DB.prepare(baseQuery);
-    const { results } = await stmt.all();
-    return new Response(JSON.stringify(results), {
-      headers: { 'Content-Type': 'application/json' }
+function pad(n){ return n.toString().padStart(2,'0'); }
+function populateTimes(){
+  TIME.innerHTML = '';
+  for(let h=8; h<=16; h++){
+    [0,30].forEach(m => {
+      if(h===16 && m>0) return;
+      const t = `${pad(h)}:${pad(m)}`;
+      TIME.innerHTML += `<option value="${t}">${t}</option>`;
     });
   }
-
-  // POST: create booking + send notifications via Mailgun
-  if (request.method === 'POST') {
-    // 1) Parse booking data
-    const {
-      teacher_id,
-      date,
-      start_time,
-      end_time,
-      parent_name,
-      parent_email,
-      student_name,
-      school_name,
-      booking_type
-    } = await request.json();
-
-    // 2) Insert into D1
-    await DB.prepare(
-      `INSERT INTO Bookings
-         (teacher_id, booking_date, start_time, end_time,
-          parent_name, student_name, school_name, parent_email, booking_type)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    )
-    .bind(
-      teacher_id,
-      date,
-      start_time,
-      end_time,
-      parent_name,
-      student_name,
-      school_name,
-      parent_email,
-      booking_type
-    )
-    .run();
-
-    // 3) Lookup teacher name
-    const { results: tRows } = await DB.prepare(
-      'SELECT name FROM Teachers WHERE id = ?'
-    ).bind(teacher_id).all();
-    const teacherName = tRows[0]?.name || 'Unknown Teacher';
-
-    // 4) Compute day name
-    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const dayName = dayNames[new Date(date).getUTCDay()];
-
-    // 5) Mailgun setup
-    const auth = 'Basic ' + btoa(`api:${env.MAILGUN_API_KEY}`);
-    const mgUrl = `https://api.mailgun.net/v3/${env.MAILGUN_DOMAIN}/messages`;
-
-    // Helper to send and log
-    async function sendMail(params, label) {
-      console.log(`[Mailgun:${label}] To=${params.get('to')}`);
-      const res = await fetch(mgUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': auth,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: params
-      });
-      const text = await res.text();
-      if (!res.ok) {
-        console.error(`[Mailgun:${label}] Error ${res.status}`, text);
-      } else {
-        console.log(`[Mailgun:${label}] Success`, text);
-      }
-    }
-
-    // 6) Build and send parent email
-    const parentParams = new URLSearchParams();
-    parentParams.append('from', env.SENDER_EMAIL);
-    parentParams.append('to', parent_email);
-    parentParams.append('subject', 'Your Booking Confirmation');
-    parentParams.append('text',
-      `Hi ${parent_name},\n\n` +
-      `Your ${booking_type === 'zoom' ? 'Zoom session' : 'In Person'} with ${teacherName} on ${dayName} at ${start_time} is confirmed.\n\n` +
-      `Student: ${student_name}\nSchool: ${school_name}`
-    );
-
-    // 7) Build and send admin email
-    const adminParams = new URLSearchParams();
-    adminParams.append('from', env.SENDER_EMAIL);
-    adminParams.append('to', env.ADMIN_EMAIL);
-    adminParams.append('subject', 'New Booking Received');
-    adminParams.append('text',
-      `New booking details:\n` +
-      `Type: ${booking_type === 'zoom' ? 'Zoom' : 'In Person'}\n` +
-      `Teacher: ${teacherName}\nDay: ${dayName}\nTime: ${start_time}–${end_time}\n` +
-      `Parent: ${parent_name} <${parent_email}>\nStudent: ${student_name}\nSchool: ${school_name}`
-    );
-
-    await Promise.all([
-      sendMail(parentParams, 'parent'),
-      sendMail(adminParams, 'admin')
-    ]);
-
-    return new Response(null, { status: 201 });
-  }
-
-  // DELETE: remove booking by ID
-  if (request.method === 'DELETE') {
-    const { id } = await request.json();
-    await DB.prepare('DELETE FROM Bookings WHERE id = ?').bind(id).run();
-    return new Response(null, { status: 204 });
-  }
-
-  return new Response('Method Not Allowed', { status: 405 });
 }
+function slotEnd(s){
+  let [h,m] = s.split(':').map(Number);
+  m += 30;
+  if(m>=60){ h++; m-=60; }
+  return `${pad(h)}:${pad(m)}`;
+}
+
+// Toggle controls on type change
+TYPE.onchange = () => {
+  if(TYPE.value === 'zoom') {
+    ZOOM_DIV.style.display = 'block';
+    INP_DIV.style.display  = 'none';
+  } else {
+    ZOOM_DIV.style.display = 'none';
+    INP_DIV.style.display  = 'block';
+  }
+};
+
+// Slot button behavior
+SLOT_BTNS.forEach(btn => {
+  btn.onclick = () => {
+    SLOT_BTNS.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedSlot = btn.dataset.slot; // 'am' or 'pm'
+  };
+});
+
+// Main search
+async function findTeachers(){
+  RESULTS.textContent = 'Loading…';
+  document.getElementById('available-heading').style.display = 'none';
+
+  const teachers  = await fetch('/api/teachers').then(r=>r.json());
+  const unavail   = await fetch('/api/unavailability').then(r=>r.json());
+
+  let dow, start, end;
+
+  if(TYPE.value === 'zoom'){
+    dow   = +DAY1.value;
+    start = TIME.value;
+    end   = slotEnd(start);
+  } else {
+    dow = +DAY2.value;
+    if(selectedSlot === 'am'){
+      start = '08:30';
+      end   = '12:30';
+    } else {
+      start = '12:30';
+      end   = '16:30';
+    }
+  }
+
+  // Compute next actual date
+  selDate = new Date();
+  selDate.setDate(
+    selDate.getDate() + ((dow + 7 - selDate.getUTCDay()) % 7)
+  );
+  selStart = start;
+  selEnd   = end;
+
+  const bookings = await fetch(
+    `/api/bookings?date=${selDate.toISOString().slice(0,10)}`
+  ).then(r=>r.json());
+
+  // Filter availability
+  const avail = teachers.filter(t => {
+    if(unavail.some(u =>
+      u.teacher_id===t.id &&
+      u.day_of_week===dow &&
+      !(end <= u.start_time || start >= u.end_time)
+    )) return false;
+    if(bookings.some(b =>
+      b.teacher_id===t.id &&
+      !(end <= b.start_time || start >= b.end_time)
+    )) return false;
+    return true;
+  });
+
+  if(!avail.length){
+    RESULTS.innerHTML = '<p>No teachers available.</p>';
+    return;
+  }
+
+  document.getElementById('available-heading').style.display = 'block';
+  RESULTS.innerHTML = avail.map(t =>
+    `<button data-id="${t.id}" data-name="${t.name}">${t.name}</button>`
+  ).join('');
+
+  RESULTS.querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => {
+      selectedTeacher = { id:+btn.dataset.id, name:btn.dataset.name };
+      TNAME.textContent = btn.dataset.name;
+      FORM_WR.style.display = 'block';
+    };
+  });
+}
+
+// Init
+populateTimes();
+findTeachers(); // optional auto-load?
+FIND.onclick = findTeachers;
+CLOSE.onclick = () => POPUP.style.display = 'none';
+
+document.getElementById('form').onsubmit = async e => {
+  e.preventDefault();
+  const form = e.target;
+  const data = {
+    teacher_id:   selectedTeacher.id,
+    date:         selDate.toISOString().slice(0,10),
+    start_time:   selStart,
+    end_time:     selEnd,
+    parent_name:  form.parent_name.value,
+    parent_email: form.parent_email.value,
+    student_name: form.student_name.value,
+    school_name:  form.school_name.value,
+    booking_type: TYPE.value
+  };
+  await fetch('/api/bookings', {
+    method: 'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify(data)
+  });
+  POPUP.style.display = 'flex';
+  FORM_WR.style.display = 'none';
+  RESULTS.innerHTML = '';
+};
