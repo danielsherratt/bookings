@@ -1,35 +1,58 @@
 // public/js/admin.js
 
-// Reload and render all admin data
 async function reloadAdmin() {
-  // Fetch teachers, unavailability, and bookings
+  // 1) Fetch all data
   const [teachers, unavail, bookings] = await Promise.all([
     fetch('/api/teachers').then(r => r.json()),
     fetch('/api/unavailability').then(r => r.json()),
     fetch('/api/bookings').then(r => r.json())
   ]);
 
-  // Build a map of teacher_id → name
-  const teacherMap = Object.fromEntries(
-    teachers.map(t => [t.id, t.name])
-  );
+  // Build map of teacher_id → name
+  const teacherMap = Object.fromEntries(teachers.map(t => [t.id, t.name]));
 
   //
-  // 1) Render Teacher Management table
+  // 2) Render Teacher Management table with a <select> for location
   //
   const tt = document.getElementById('teachers-table');
-  tt.innerHTML = teachers.map(t => `
-    <tr>
-      <td>${t.id}</td>
-      <td>${t.name}</td>
-      <td>${t.location || ''}</td>
-      <td>
-        <button class="delete-teacher-btn" data-id="${t.id}">
-          Delete
-        </button>
-      </td>
-    </tr>
-  `).join('');
+  tt.innerHTML = teachers.map(t => {
+    // Define your allowed locations here:
+    const locations = ['Sumner','Kelston','Wanaka'];
+    const opts = locations.map(loc =>
+      `<option value="${loc}" ${t.location === loc ? 'selected' : ''}>${loc}</option>`
+    ).join('');
+    return `
+      <tr>
+        <td>${t.id}</td>
+        <td>${t.name}</td>
+        <td>
+          <select class="teacher-location-select" data-id="${t.id}">
+            ${opts}
+          </select>
+        </td>
+        <td>
+          <button class="delete-teacher-btn" data-id="${t.id}">Delete</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  // Handle location changes
+  document.querySelectorAll('.teacher-location-select').forEach(sel => {
+    sel.onchange = async () => {
+      const id = +sel.dataset.id;
+      const location = sel.value;
+      await fetch('/api/teachers', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, location })
+      });
+      // Optionally show a small toast or console log:
+      console.log(`Teacher ${id} location updated to ${location}`);
+    };
+  });
+
+  // Handle teacher deletions
   document.querySelectorAll('.delete-teacher-btn').forEach(btn => {
     btn.onclick = async () => {
       if (!confirm('Delete this teacher and all related data?')) return;
@@ -43,15 +66,7 @@ async function reloadAdmin() {
   });
 
   //
-  // 2) Populate Unavailability form dropdown
-  //
-  const selT = document.getElementById('teacher-unavail');
-  selT.innerHTML = teachers.map(t =>
-    `<option value="${t.id}">${t.name}</option>`
-  ).join('');
-
-  //
-  // 3) Render Unavailability table
+  // 3) Render Unavailability (unchanged)
   //
   const ut = document.getElementById('unavail-table');
   const dayNames = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday'};
@@ -62,9 +77,7 @@ async function reloadAdmin() {
       <td>${dayNames[u.day_of_week]}</td>
       <td>${u.start_time}–${u.end_time}</td>
       <td>
-        <button class="delete-unavail-btn" data-id="${u.id}">
-          Delete
-        </button>
+        <button class="delete-unavail-btn" data-id="${u.id}">Delete</button>
       </td>
     </tr>
   `).join('');
@@ -80,7 +93,7 @@ async function reloadAdmin() {
   });
 
   //
-  // 4) Render Bookings table
+  // 4) Render Bookings (unchanged)
   //
   const bt = document.getElementById('bookings-table');
   const weekdayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -96,9 +109,7 @@ async function reloadAdmin() {
       <td>${b.student_name}</td>
       <td>${b.school_name}</td>
       <td>
-        <button class="delete-booking-btn" data-id="${b.id}">
-          Delete
-        </button>
+        <button class="delete-booking-btn" data-id="${b.id}">Delete</button>
       </td>
     </tr>
   `).join('');
@@ -115,17 +126,20 @@ async function reloadAdmin() {
   });
 }
 
-// Set up event handlers once DOM is ready
+// Set up handlers on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-  // Initial load
+  // Initial render
   reloadAdmin();
 
   // Add Teacher form
   document.getElementById('add-teacher-form').onsubmit = async e => {
     e.preventDefault();
     const name     = document.getElementById('new-teacher-name').value.trim();
-    const location = document.getElementById('new-teacher-location').value.trim();
-    if (!name || !location) return;
+    const location = document.getElementById('new-teacher-location').value;
+    if (!name || !location) {
+      alert('Please provide both name and location.');
+      return;
+    }
     await fetch('/api/teachers', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -135,18 +149,18 @@ document.addEventListener('DOMContentLoaded', () => {
     reloadAdmin();
   };
 
-  // Add Unavailability button
+  // Unavailability form
   document.getElementById('add-unavail').onclick = async () => {
     const teacher_id = +document.getElementById('teacher-unavail').value;
-    const days = Array.from(document.querySelectorAll('input[name="unavail-day"]:checked'))
-      .map(cb => +cb.value);
+    const days = Array.from(
+      document.querySelectorAll('input[name="unavail-day"]:checked')
+    ).map(cb => +cb.value);
     const start_time = document.getElementById('start-unavail').value;
     const end_time   = document.getElementById('end-unavail').value;
     if (!days.length) {
       alert('Select at least one day.');
       return;
     }
-    // Send one POST per selected day
     await Promise.all(days.map(day =>
       fetch('/api/unavailability', {
         method: 'POST',
