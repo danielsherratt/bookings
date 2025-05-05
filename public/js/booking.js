@@ -1,3 +1,5 @@
+// public/js/booking.js
+
 const TYPE          = document.getElementById('type');
 const ZOOM_DIV      = document.getElementById('zoom-controls');
 const INP_DIV       = document.getElementById('inperson-controls');
@@ -16,20 +18,19 @@ const FORM          = document.getElementById('form');
 
 let selectedTeacher, selDate, selStart, selEnd;
 
-function pad(n){ return n.toString().padStart(2,'0'); }
+function pad(n) { return n.toString().padStart(2,'0'); }
 
 function populateTimes() {
   TIME.innerHTML = '';
-  for (let h=8; h<=16; h++) {
+  for (let h = 8; h <= 16; h++) {
     [0,30].forEach(m => {
-      if (h===16 && m>0) return;
+      if (h === 16 && m > 0) return;
       const t = `${pad(h)}:${pad(m)}`;
       TIME.innerHTML += `<option value="${t}">${t}</option>`;
     });
   }
 }
 
-// Safe JSON fetch helper
 async function safeFetchJson(url) {
   try {
     const res = await fetch(url);
@@ -41,7 +42,6 @@ async function safeFetchJson(url) {
   }
 }
 
-// Populate location-select from distinct teacher locations
 async function populateLocations() {
   const teachers = await safeFetchJson('/api/teachers');
   const locations = [...new Set(
@@ -56,7 +56,7 @@ async function populateLocations() {
 
 function slotEnd(s) {
   let [h,m] = s.split(':').map(Number);
-  m += 30; if (m>=60) { h++; m-=60; }
+  m += 30; if (m >= 60) { h++; m -= 60; }
   return `${pad(h)}:${pad(m)}`;
 }
 
@@ -94,8 +94,8 @@ async function findTeachers() {
     safeFetchJson(`/api/bookings?date=${iso}`)
   ]);
 
-  // Filter availability
-  const avail = teachers.filter(t => {
+  // Filter availability by schedule
+  let avail = teachers.filter(t => {
     if (unavail.some(u =>
       u.teacher_id === t.id &&
       u.day_of_week === dow &&
@@ -107,6 +107,11 @@ async function findTeachers() {
     )) return false;
     return true;
   });
+
+  // If In Person, filter by selected location
+  if (TYPE.value === 'inperson') {
+    avail = avail.filter(t => t.location === LOC_SELECT.value);
+  }
 
   if (!avail.length) {
     RESULTS.innerHTML = '<p>No teachers available.</p>';
@@ -127,7 +132,7 @@ async function findTeachers() {
   });
 }
 
-// Re-run search on UI changes
+// Re-run search on controls change
 TYPE.addEventListener('change', () => {
   ZOOM_DIV.style.display = TYPE.value === 'zoom' ? 'block' : 'none';
   INP_DIV.style.display  = TYPE.value === 'inperson' ? 'block' : 'none';
@@ -137,7 +142,9 @@ DAY1.addEventListener('change', findTeachers);
 TIME.addEventListener('change', findTeachers);
 DAY2.addEventListener('change', findTeachers);
 SLOT_SELECT.addEventListener('change', findTeachers);
+LOC_SELECT.addEventListener('change', findTeachers);
 
+// Close popup and reload
 CLOSE.addEventListener('click', () => {
   POPUP.style.display = 'none';
   window.location.reload();
@@ -157,25 +164,19 @@ FORM.addEventListener('submit', async e => {
     student_name: f.student_name.value,
     school_name:  f.school_name.value,
     booking_type: TYPE.value,
-    // Optionally include location in payload:
-    // booking_location: TYPE.value==='inperson' ? LOC_SELECT.value : null
+    booking_location: TYPE.value === 'inperson' ? LOC_SELECT.value : null
   };
 
-  const res = await fetch('/api/bookings', {
-    method:  'POST',
+  await fetch('/api/bookings', {
+    method: 'POST',
     headers: { 'Content-Type':'application/json' },
-    body:    JSON.stringify(payload)
+    body: JSON.stringify(payload)
   });
-
-  if (!res.ok) {
-    console.error('Booking failed', await res.text());
-  }
 
   POPUP.style.display = 'flex';
   FORM_WR.style.display = 'none';
   RESULTS.innerHTML = '';
 });
-
 
 // Initialization
 (async function init() {
@@ -183,4 +184,3 @@ FORM.addEventListener('submit', async e => {
   await populateLocations();
   TYPE.dispatchEvent(new Event('change'));
 })();
- 
