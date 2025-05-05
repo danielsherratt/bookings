@@ -92,7 +92,7 @@ async function findTeachers(){
   }
 
   if(!avail.length){
-    RESULTS.innerHTML='<p>No teachers available.</p>';
+    RESULTS.innerHTML='<p>No Tutors available.</p>';
     return;
   }
 

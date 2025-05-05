@@ -44,7 +44,7 @@ function renderTeachers(teachers) {
       <td>${t.name}</td>
       <td>${t.location || ''}</td>
       <td>
-        <button class="delete-teacher-btn" data-id="${t.id}">Delete</button>
+        <button class="delete-teacher-btn" data-id="${t.id}"><i class="fa-solid fa-trash"></i></button>
       </td>
     </tr>
   `).join('');
@@ -70,7 +70,7 @@ function renderUnavailability(unavail, teacherMap) {
       <td>${dayNames[u.day_of_week]}</td>
       <td>${u.start_time}–${u.end_time}</td>
       <td>
-        <button class="delete-unavail-btn" data-id="${u.id}">Delete</button>
+        <button class="delete-unavail-btn" data-id="${u.id}"><i class="fa-solid fa-trash"></i></button>
       </td>
     </tr>
   `).join('');
@@ -108,7 +108,7 @@ function renderBookings(bookings, teacherMap, locationMap) {
         <td>${b.student_name}</td>
         <td>${b.school_name}</td>
         <td>
-          <button class="delete-booking-btn" data-id="${b.id}">Delete</button>
+          <button class="delete-booking-btn" data-id="${b.id}"><i class="fa-solid fa-trash"></i></button>
         </td>
       </tr>
     `;
