@@ -4,34 +4,57 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="css/styles.css"/>
-  <title>NZSL Tutor Bookings</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <title>Teacher Booking</title>
 </head>
 <body>
   <div class="container">
-    <!-- Logo -->
     <div class="logo">
-      <img src="assets/logo.png" alt="Your Logo">
+      <img src="/logo.png" alt="Your Logo">
     </div>
 
-    <h1>Book a NZSL Tutor</h1>
+    <h1>Book a Teacher</h1>
 
-    <label for="day">Day:</label>
-    <select id="day">
-      <option value="1">Monday</option>
-      <option value="2">Tuesday</option>
-      <option value="3">Wednesday</option>
-      <option value="4">Thursday</option>
-      <option value="5">Friday</option>
+    <label for="type">Booking Type:</label>
+    <select id="type">
+      <option value="zoom">Zoom Session (30m)</option>
+      <option value="inperson">In Person (4h)</option>
     </select>
 
-    <label for="time">Time:</label>
-    <select id="time"></select>
-    <br>
-    <button id="find">Find Available NZSL Tutor</button>
+    <div id="zoom-controls">
+      <label for="day">Day:</label>
+      <select id="day">
+        <option value="1">Monday</option>
+        <option value="2">Tuesday</option>
+        <option value="3">Wednesday</option>
+        <option value="4">Thursday</option>
+        <option value="5">Friday</option>
+      </select>
 
-    <h2 id="available-heading" style="display:none;">Available NZSL Tutor</h2>
+      <label for="time">Time:</label>
+      <select id="time"></select>
+    </div>
+
+    <div id="inperson-controls" style="display:none;">
+      <label for="day2">Day:</label>
+      <select id="day2">
+        <option value="1">Monday</option>
+        <option value="2">Tuesday</option>
+        <option value="3">Wednesday</option>
+        <option value="4">Thursday</option>
+        <option value="5">Friday</option>
+      </select>
+
+      <label for="slot">Slot:</label>
+      <select id="slot">
+        <option value="am">AM (8:30–12:30)</option>
+        <option value="pm">PM (12:30–16:30)</option>
+      </select>
+    </div>
+
+    <button id="find">Find Available Teachers</button>
+
+    <h2 id="available-heading" style="display:none;">Available Teachers</h2>
     <div id="results"></div>
 
     <div id="booking-form" style="display:none;">
@@ -45,7 +68,6 @@
       </form>
     </div>
 
-    <!-- Confirmation Popup -->
     <div id="confirmation-popup" class="modal" style="display:none;">
       <div class="modal-content">
         <button class="close-btn">&times;</button>

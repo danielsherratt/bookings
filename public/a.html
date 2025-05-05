@@ -1,54 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="css/styles.css" rel="stylesheet">
-  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
-  <title>Admin: NZSL Tutor Bookings</title>
+  <title>Admin Dashboard</title>
 </head>
 <body>
   <div class="container">
-    <h1>Admin: NZSL Tutor Bookings</h1>
+    <h1>Admin Dashboard</h1>
 
     <!-- Unavailability Section -->
     <h2>Set Unavailability</h2>
     <label>Teacher:</label>
-    <select id="teacher-unavail"></select>
-    <label>Day(s):</label>
+    <select id="teacher-unavail"></select><br/>
+    <label>Day(s):</label><br/>
     <label><input type="checkbox" name="unavail-day" value="1"> Monday</label>
     <label><input type="checkbox" name="unavail-day" value="2"> Tuesday</label>
     <label><input type="checkbox" name="unavail-day" value="3"> Wednesday</label>
     <label><input type="checkbox" name="unavail-day" value="4"> Thursday</label>
-    <label><input type="checkbox" name="unavail-day" value="5"> Friday</label>
+    <label><input type="checkbox" name="unavail-day" value="5"> Friday</label><br/>
     <label>Start Time:</label>
-    <input type="time" id="start-unavail" value="08:30">
+    <input type="time" id="start-unavail" value="08:30"/>
     <label>End Time:</label>
-    <input type="time" id="end-unavail" value="12:00">
-    <br>
+    <input type="time" id="end-unavail" value="12:00"/><br/>
     <button id="add-unavail">Add Unavailability</button>
 
-    <h2>Existing Unavailability</h2>
+    <h3>Existing Unavailability</h3>
     <table>
-      <thead><tr><th>Teacher</th><th>Day</th><th>Time</th><th>Action</th></tr></thead>
+      <thead>
+        <tr><th>ID</th><th>Teacher</th><th>Day</th><th>Time</th><th>Action</th></tr>
+      </thead>
       <tbody id="unavail-table"></tbody>
     </table>
 
     <!-- Bookings Section -->
     <h2>Existing Bookings</h2>
     <table>
-      <thead><tr><th>Teacher</th><th>Day</th><th>Time</th><th>Parent</th><th>Email</th><th>Student</th><th>School</th><th>Action</th></tr></thead>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Teacher</th>
+          <th>Day</th>
+          <th>Time</th>
+          <th>Type</th>
+          <th>Parent</th>
+          <th>Email</th>
+          <th>Student</th>
+          <th>School</th>
+          <th>Action</th>
+        </tr>
+      </thead>
       <tbody id="bookings-table"></tbody>
     </table>
 
     <!-- Teacher Management -->
     <h2>Manage Teachers</h2>
     <form id="add-teacher-form">
-      <input id="new-teacher-name" type="text" placeholder="New Teacher Name" required>
+      <input id="new-teacher-name" placeholder="New Teacher Name" required />
       <button>Add Teacher</button>
     </form>
     <table>
-      <thead><tr><th>Name</th><th>Action</th></tr></thead>
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Action</th></tr>
+      </thead>
       <tbody id="teachers-table"></tbody>
     </table>
   </div>
