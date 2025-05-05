@@ -10,12 +10,12 @@
 <body>
   <div class="container-admin">
     <h1>NZSL Bookings Dashboard</h1>
-    <p>Please contact <i class="fa fa-envelope"></i> <a href="ITSupport@kotakureo.school.nz?Subject=NZSL Booking Dashboard">ITSupport</a> for assistance</p>
+    <p><i class="fa fa-envelope"></i> <a href="ITSupport@kotakureo.school.nz?Subject=NZSL Booking Dashboard">ITSupport</a></p>
 
 
  <!-- Existing Bookings -->
  <h2>Bookings</h2>
- <button id="export-csv"><i class="fa-solid fa-file-export"></i></button>
+ <button id="export-csv"><i class="fa-solid fa-file-export"></i> Export Bookings</button>
  <table>
    <thead>
      <tr>
@@ -28,7 +28,7 @@
        <th>Email</th>
        <th>Student</th>
        <th>School</th>
-       <th>Action</th>
+       <th>Delete</th>
      </tr>
    </thead>
    <tbody id="bookings-table"></tbody>
@@ -38,15 +38,15 @@
     <h2>Manage Tutors</h2>
     <form id="add-teacher-form">
       <input id="new-teacher-name"  type="text"   placeholder="Tutor Name"   required>
-      <input id="new-teacher-location" type="text" placeholder="Location (e.g. Sumner)" required>
+      <input id="new-teacher-location" type="text" placeholder="Location (e.g. Christchurch North)" required>
       <button>Add Tutor</button>
     </form>
     <table>
       <thead>
         <tr>
-          <th>Name</th>
+          <th>Tutor</th>
           <th>Location</th>
-          <th>Action</th>
+          <th>Delete</th>
         </tr>
       </thead>
       <tbody id="teachers-table"></tbody>
@@ -75,7 +75,7 @@
           <th>Tutor</th>
           <th>Day</th>
           <th>Time</th>
-          <th>Action</th>
+          <th>Delete</th>
         </tr>
       </thead>
       <tbody id="unavail-table"></tbody>
