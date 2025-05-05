@@ -4,14 +4,15 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="css/styles.css" rel="stylesheet"/>
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
   <title>Admin Dashboard</title>
 </head>
 <body>
   <div class="container">
-    <h1>Admin Dashboard</h1>
+    <h1>NZSL Booking Dashboard</h1>
 
     <!-- Manage Teachers -->
-    <h2>Manage Teachers</h2>
+    <h2>Manage Tutors</h2>
     <form id="add-teacher-form">
       <input id="new-teacher-name"     placeholder="Teacher Name"   required>
       <input id="new-teacher-location" placeholder="Location (e.g. Sumner)" required>
@@ -20,7 +21,6 @@
     <table>
       <thead>
         <tr>
-          <th>ID</th>
           <th>Name</th>
           <th>Location</th>
           <th>Action</th>
@@ -45,11 +45,10 @@
     <input type="time" id="end-unavail" value="12:00"/><br/>
     <button id="add-unavail">Add Unavailability</button>
 
-    <h3>Existing Unavailability</h3>
+    <h2>Existing Unavailability</h2>
     <table>
       <thead>
         <tr>
-          <th>ID</th>
           <th>Teacher</th>
           <th>Day</th>
           <th>Time</th>
@@ -64,7 +63,6 @@
     <table>
       <thead>
         <tr>
-          <th>ID</th>
           <th>Teacher</th>
           <th>Day</th>
           <th>Time</th>

@@ -61,9 +61,8 @@ async function reloadAdmin() {
   const tt = document.getElementById('teachers-table');
   tt.innerHTML = teachers.map(t => `
     <tr>
-      <td>${t.id}</td>
       <td>${t.name}</td>
-      <td>${t.location || ''}</td>
+      <td>${t.location || 'Not Set'}</td>
       <td>
         <button class="delete-teacher-btn" data-id="${t.id}">
           Delete
@@ -94,7 +93,6 @@ async function reloadAdmin() {
   const dayNames = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday'};
   ut.innerHTML = unavail.map(u => `
     <tr>
-      <td>${u.id}</td>
       <td>${teacherMap[u.teacher_id] || u.teacher_name}</td>
       <td>${dayNames[u.day_of_week]}</td>
       <td>${u.start_time}–${u.end_time}</td>
@@ -129,14 +127,13 @@ async function reloadAdmin() {
       : (b.booking_location || locationMap[b.teacher_id] || '');
     return `
       <tr>
-        <td>${b.id}</td>
         <td>${teacherMap[b.teacher_id] || b.teacher_name}</td>
         <td>${day}</td>
         <td>${time}</td>
         <td>${type}</td>
         <td>${loc}</td>
         <td>${b.parent_name}</td>
-        <td>${b.parent_email}</td>
+        <td><a href="mailto:${b.parent_email}">${b.parent_email}</a></td>
         <td>${b.student_name}</td>
         <td>${b.school_name}</td>
         <td>

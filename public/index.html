@@ -5,17 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css"/>
-  <title>Teacher Booking</title>
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <title>NZSL Tutor Booking</title>
 </head>
 <body>
   <div class="container">
 
     <!-- Logo -->
     <div class="logo">
-      <img src="/logo.png" alt="Your Logo">
+      <img src="assets/logo.png" alt="Your Logo">
     </div>
 
-    <h1>Book a Teacher</h1>
+    <h1>Book a NZSL Tutor</h1>
 
     <label for="type">Booking Type:</label>
     <select id="type">
@@ -51,17 +52,17 @@
 
       <label for="slot-select">Slot:</label>
       <select id="slot-select">
-        <option value="am">AM (08:30–12:30)</option>
-        <option value="pm">PM (12:30–16:30)</option>
+        <option value="am">AM (08:30am–12:30pm)</option>
+        <option value="pm">PM (12:30pm–4:30pm)</option>
       </select>
 
       <label for="location-select">Location:</label>
       <select id="location-select"></select>
     </div>
 
-    <button id="find">Find Available Teachers</button>
+    <!--  <button id="find">Find Available Teachers</button> -->
 
-    <h2 id="available-heading" style="display:none;">Available Teachers</h2>
+    <h2 id="available-heading" style="display:none;">Available NZSL Tutors</h2>
     <div id="results"></div>
 
     <!-- Booking form -->
@@ -80,6 +81,7 @@
     <div id="confirmation-popup" class="modal" style="display:none;">
       <div class="modal-content">
         <button class="close-btn">&times;</button>
+        <br>
         <p>Booking created successfully!</p>
       </div>
     </div>
