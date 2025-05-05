@@ -110,7 +110,7 @@ async function findTeachers() {
   });
 }
 
-// Re-run search on any selection change
+// Auto-run on any control change
 TYPE.addEventListener('change', () => {
   ZOOM_DIV.style.display = TYPE.value === 'zoom' ? 'block' : 'none';
   INP_DIV.style.display  = TYPE.value === 'inperson' ? 'block' : 'none';
@@ -128,7 +128,6 @@ SLOT_BTNS.forEach(btn => {
   });
 });
 
-// Init
 populateTimes();
 TYPE.dispatchEvent(new Event('change'));
 SLOT_BTNS[0].click();
@@ -141,7 +140,7 @@ CLOSE.addEventListener('click', () => {
   window.location.reload();
 });
 
-// Booking form submit
+// ------------ Form Submission ------------
 document.getElementById('form').addEventListener('submit', async e => {
   e.preventDefault();
   const f = e.target;
@@ -154,7 +153,8 @@ document.getElementById('form').addEventListener('submit', async e => {
     parent_email: f.parent_email.value,
     student_name: f.student_name.value,
     school_name:  f.school_name.value,
-    booking_type: TYPE.value === 'zoom' ? 'zoom' : 'inperson'
+    // <<< DIRECT VALUE FROM DROPDOWN >>>
+    booking_type: TYPE.value
   };
 
   await fetch('/api/bookings', {
