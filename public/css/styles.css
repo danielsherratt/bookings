@@ -15,10 +15,9 @@ body {
   background-color: #ffffff;
   padding: 32px;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-/* Logo area */
 .logo {
   margin-bottom: 24px;
 }
@@ -62,7 +61,7 @@ input[type="text"]:focus {
 }
 
 button {
-  background-color: #00625f;
+  background-color: #72a546;
   color: #ffffff;
   border: none;
   padding: 12px 20px;
@@ -70,11 +69,31 @@ button {
   font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  margin: 5px;
 }
 
 button:hover {
-  background-color:#72a546;
+  background-color: #00625f;
+}
+
+/* AM/PM slot buttons */
+.slot-btn {
+  background-color: #ffffff;
+  border: 2px solid #6bbaae;
+  border-radius: 6px;
+  padding: 10px 16px;
+  margin: 0 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.slot-btn:hover {
+  background-color: #e0f7f1;
+}
+
+.slot-btn.active {
+  background-color: #72a546;
+  color: #ffffff;
+  border-color: #72a546;
 }
 
 table {
@@ -94,33 +113,12 @@ th {
   color: #ffffff;
 }
 
-.delete-btn,
-.delete-unavail-btn,
-.delete-booking-btn,
-.delete-teacher-btn
- {
-  background-color: transparent;
-  color: #003541;
-  border: 1px solid #003541;
-  padding: 6px 12px;
-  border-radius: 4px;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.delete-btn:hover,
-.delete-booking-btn:hover,
-.delete-unavail-btn:hover,
-.delete-teacher-btn:hover {
-  background-color: #003541;
-  color: #ffffff;
-}
-
 /* Confirmation Popup */
 #confirmation-popup.modal {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -132,7 +130,7 @@ th {
   max-width: 280px;
   width: 90%;
   position: relative;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 #confirmation-popup .close-btn {
   position: absolute;
@@ -147,16 +145,4 @@ th {
 }
 #confirmation-popup .close-btn:hover {
   color: #72a546;
-}
-
-a,
-a.visted {
-  color:#003541;
-  text-decoration: underline;
-}
-
-a:hover,
-a.visted:hover {
-  color:#003541;
-  text-decoration: none;
 }

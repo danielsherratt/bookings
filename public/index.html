@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css"/>
   <title>Teacher Booking</title>
 </head>
 <body>
   <div class="container">
+
+    <!-- Logo -->
     <div class="logo">
       <img src="/logo.png" alt="Your Logo">
     </div>
@@ -21,6 +23,7 @@
       <option value="inperson">In Person (4h)</option>
     </select>
 
+    <!-- Zoom controls -->
     <div id="zoom-controls">
       <label for="day">Day:</label>
       <select id="day">
@@ -35,6 +38,7 @@
       <select id="time"></select>
     </div>
 
+    <!-- In Person controls -->
     <div id="inperson-controls" style="display:none;">
       <label for="day2">Day:</label>
       <select id="day2">
@@ -57,23 +61,26 @@
     <h2 id="available-heading" style="display:none;">Available Teachers</h2>
     <div id="results"></div>
 
+    <!-- Booking form -->
     <div id="booking-form" style="display:none;">
       <h2>Confirm Booking with <span id="teacher-name"></span></h2>
       <form id="form">
-        <input name="parent_name" type="text" placeholder="Parent Name" required /><br/>
-        <input name="parent_email" type="email" placeholder="Parent Email" required /><br/>
-        <input name="student_name" type="text" placeholder="Student Name" required /><br/>
-        <input name="school_name" type="text" placeholder="School Name" required /><br/>
+        <input name="parent_name"  type="text"  placeholder="Parent Name"   required><br>
+        <input name="parent_email" type="email" placeholder="Parent Email"  required><br>
+        <input name="student_name" type="text"  placeholder="Student Name"  required><br>
+        <input name="school_name"  type="text"  placeholder="School Name"   required><br>
         <button type="submit">Book</button>
       </form>
     </div>
 
+    <!-- Confirmation popup -->
     <div id="confirmation-popup" class="modal" style="display:none;">
       <div class="modal-content">
         <button class="close-btn">&times;</button>
         <p>Booking created successfully!</p>
       </div>
     </div>
+
   </div>
 
   <script src="js/booking.js"></script>
