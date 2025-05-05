@@ -15,15 +15,16 @@ const POPUP     = document.getElementById('confirmation-popup');
 const CLOSE     = POPUP.querySelector('.close-btn');
 
 let selectedTeacher, selDate, selStart, selEnd;
-let selectedSlot = 'am';
+let selectedSlot = 'am';           // for In Person
+let selectedBookingType = 'zoom';  // will be set on teacher click
 
 function pad(n) { return n.toString().padStart(2,'0'); }
 
 function populateTimes() {
   TIME.innerHTML = '';
-  for (let h = 8; h <= 16; h++) {
-    [0, 30].forEach(m => {
-      if (h === 16 && m > 0) return;
+  for (let h=8; h<=16; h++) {
+    [0,30].forEach(m => {
+      if (h===16 && m>0) return;
       const t = `${pad(h)}:${pad(m)}`;
       TIME.innerHTML += `<option value="${t}">${t}</option>`;
     });
@@ -32,16 +33,16 @@ function populateTimes() {
 
 function slotEnd(s) {
   let [h,m] = s.split(':').map(Number);
-  m += 30; if (m >= 60) { h++; m -= 60; }
+  m += 30; if (m>=60){ h++; m-=60; }
   return `${pad(h)}:${pad(m)}`;
 }
 
 async function safeFetchJson(url) {
   try {
     const res = await fetch(url);
-    if (!res.ok || res.status === 204) return [];
-    const text = await res.text();
-    return text ? JSON.parse(text) : [];
+    if (!res.ok || res.status===204) return [];
+    const txt = await res.text();
+    return txt ? JSON.parse(txt) : [];
   } catch {
     return [];
   }
@@ -58,7 +59,7 @@ async function findTeachers() {
     end   = slotEnd(start);
   } else {
     dow = +DAY2.value;
-    if (selectedSlot === 'am') {
+    if (selectedSlot==='am') {
       start = '08:30'; end = '12:30';
     } else {
       start = '12:30'; end = '16:30';
@@ -66,7 +67,7 @@ async function findTeachers() {
   }
 
   const now = new Date();
-  now.setDate(now.getDate() + ((dow + 7 - now.getUTCDay()) % 7));
+  now.setDate(now.getDate() + ((dow + 7 - now.getUTCDay())%7));
   selDate  = now;
   selStart = start;
   selEnd   = end;
@@ -80,13 +81,13 @@ async function findTeachers() {
 
   const avail = teachers.filter(t => {
     if (unavail.some(u =>
-      u.teacher_id === t.id &&
-      u.day_of_week === dow &&
-      !(end <= u.start_time || start >= u.end_time)
+      u.teacher_id===t.id &&
+      u.day_of_week===dow &&
+      !(end<=u.start_time||start>=u.end_time)
     )) return false;
     if (bookings.some(b =>
-      b.teacher_id === t.id &&
-      !(end <= b.start_time || start >= b.end_time)
+      b.teacher_id===t.id &&
+      !(end<=b.start_time||start>=b.end_time)
     )) return false;
     return true;
   });
@@ -101,19 +102,21 @@ async function findTeachers() {
     `<button data-id="${t.id}" data-name="${t.name}">${t.name}</button>`
   ).join('');
 
+  // When a teacher is clicked, record both the teacher and the booking type at that moment
   RESULTS.querySelectorAll('button').forEach(btn => {
     btn.addEventListener('click', () => {
       selectedTeacher = { id:+btn.dataset.id, name:btn.dataset.name };
-      TNAME.textContent   = btn.dataset.name;
+      selectedBookingType = TYPE.value;        // ← capture here
+      TNAME.textContent = btn.dataset.name;
       FORM_WR.style.display = 'block';
     });
   });
 }
 
-// Auto-run on any control change
+// Re-run search on UI changes
 TYPE.addEventListener('change', () => {
-  ZOOM_DIV.style.display = TYPE.value === 'zoom' ? 'block' : 'none';
-  INP_DIV.style.display  = TYPE.value === 'inperson' ? 'block' : 'none';
+  ZOOM_DIV.style.display = TYPE.value==='zoom' ? 'block':'none';
+  INP_DIV.style.display  = TYPE.value==='inperson'?'block':'none';
   findTeachers();
 });
 DAY1.addEventListener('change', findTeachers);
@@ -121,26 +124,27 @@ TIME.addEventListener('change', findTeachers);
 DAY2.addEventListener('change', findTeachers);
 SLOT_BTNS.forEach(btn => {
   btn.addEventListener('click', () => {
-    SLOT_BTNS.forEach(b => b.classList.remove('active'));
+    SLOT_BTNS.forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     selectedSlot = btn.dataset.slot;
     findTeachers();
   });
 });
 
+// Initial setup
 populateTimes();
 TYPE.dispatchEvent(new Event('change'));
 SLOT_BTNS[0].click();
 
 FIND.addEventListener('click', findTeachers);
 
-// Close popup and reload
+// Close the confirmation and reload the page
 CLOSE.addEventListener('click', () => {
   POPUP.style.display = 'none';
   window.location.reload();
 });
 
-// ------------ Form Submission ------------
+// Form submit: use the captured `selectedBookingType`
 document.getElementById('form').addEventListener('submit', async e => {
   e.preventDefault();
   const f = e.target;
@@ -153,13 +157,12 @@ document.getElementById('form').addEventListener('submit', async e => {
     parent_email: f.parent_email.value,
     student_name: f.student_name.value,
     school_name:  f.school_name.value,
-    // <<< DIRECT VALUE FROM DROPDOWN >>>
-    booking_type: TYPE.value
+    booking_type: selectedBookingType   // ← use stored value
   };
 
   await fetch('/api/bookings', {
     method:  'POST',
-    headers: { 'Content-Type':'application/json' },
+    headers: {'Content-Type':'application/json'},
     body:    JSON.stringify(payload)
   });
 
