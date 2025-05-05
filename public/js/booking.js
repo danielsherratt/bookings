@@ -15,15 +15,15 @@ const POPUP     = document.getElementById('confirmation-popup');
 const CLOSE     = POPUP.querySelector('.close-btn');
 
 let selectedTeacher, selDate, selStart, selEnd;
-let selectedSlot = 'am'; // default for In Person
+let selectedSlot = 'am';
 
 function pad(n) { return n.toString().padStart(2,'0'); }
 
 function populateTimes() {
   TIME.innerHTML = '';
   for (let h = 8; h <= 16; h++) {
-    [0,30].forEach(m => {
-      if (h===16 && m>0) return;
+    [0, 30].forEach(m => {
+      if (h === 16 && m > 0) return;
       const t = `${pad(h)}:${pad(m)}`;
       TIME.innerHTML += `<option value="${t}">${t}</option>`;
     });
@@ -32,34 +32,25 @@ function populateTimes() {
 
 function slotEnd(s) {
   let [h,m] = s.split(':').map(Number);
-  m += 30; if (m>=60){ h++; m-=60; }
+  m += 30; if (m >= 60) { h++; m -= 60; }
   return `${pad(h)}:${pad(m)}`;
 }
 
-// Safe JSON fetch helper
 async function safeFetchJson(url) {
   try {
     const res = await fetch(url);
-    if (!res.ok) {
-      console.error(`Fetch ${url} failed: ${res.status} ${res.statusText}`);
-      return [];
-    }
-    if (res.status === 204) return [];
+    if (!res.ok || res.status === 204) return [];
     const text = await res.text();
-    if (!text) return [];
-    return JSON.parse(text);
-  } catch (e) {
-    console.error(`Failed to fetch/parse ${url}:`, e);
+    return text ? JSON.parse(text) : [];
+  } catch {
     return [];
   }
 }
 
-// Main search function
 async function findTeachers() {
   RESULTS.textContent = 'Loading…';
   document.getElementById('available-heading').style.display = 'none';
 
-  // Determine day & time window
   let dow, start, end;
   if (TYPE.value === 'zoom') {
     dow   = +DAY1.value;
@@ -74,7 +65,6 @@ async function findTeachers() {
     }
   }
 
-  // Compute actual next date
   const now = new Date();
   now.setDate(now.getDate() + ((dow + 7 - now.getUTCDay()) % 7));
   selDate  = now;
@@ -82,14 +72,12 @@ async function findTeachers() {
   selEnd   = end;
   const iso = now.toISOString().slice(0,10);
 
-  // Fetch data
   const [teachers, unavail, bookings] = await Promise.all([
     safeFetchJson('/api/teachers'),
     safeFetchJson('/api/unavailability'),
     safeFetchJson(`/api/bookings?date=${iso}`)
   ]);
 
-  // Filter availability
   const avail = teachers.filter(t => {
     if (unavail.some(u =>
       u.teacher_id === t.id &&
@@ -116,13 +104,13 @@ async function findTeachers() {
   RESULTS.querySelectorAll('button').forEach(btn => {
     btn.addEventListener('click', () => {
       selectedTeacher = { id:+btn.dataset.id, name:btn.dataset.name };
-      TNAME.textContent = btn.dataset.name;
+      TNAME.textContent   = btn.dataset.name;
       FORM_WR.style.display = 'block';
     });
   });
 }
 
-// Wire up controls to auto-run findTeachers on change
+// Re-run search on any selection change
 TYPE.addEventListener('change', () => {
   ZOOM_DIV.style.display = TYPE.value === 'zoom' ? 'block' : 'none';
   INP_DIV.style.display  = TYPE.value === 'inperson' ? 'block' : 'none';
@@ -140,15 +128,20 @@ SLOT_BTNS.forEach(btn => {
   });
 });
 
-// Initialize controls and load initial availability
+// Init
 populateTimes();
 TYPE.dispatchEvent(new Event('change'));
-SLOT_BTNS[0].click(); // select AM by default
+SLOT_BTNS[0].click();
 
 FIND.addEventListener('click', findTeachers);
-CLOSE.addEventListener('click', () => { POPUP.style.display = 'none'; });
 
-// Booking form submission
+// Close popup and reload
+CLOSE.addEventListener('click', () => {
+  POPUP.style.display = 'none';
+  window.location.reload();
+});
+
+// Booking form submit
 document.getElementById('form').addEventListener('submit', async e => {
   e.preventDefault();
   const f = e.target;
@@ -161,7 +154,7 @@ document.getElementById('form').addEventListener('submit', async e => {
     parent_email: f.parent_email.value,
     student_name: f.student_name.value,
     school_name:  f.school_name.value,
-    booking_type: TYPE.value
+    booking_type: TYPE.value === 'zoom' ? 'zoom' : 'inperson'
   };
 
   await fetch('/api/bookings', {
@@ -172,5 +165,5 @@ document.getElementById('form').addEventListener('submit', async e => {
 
   POPUP.style.display = 'flex';
   FORM_WR.style.display = 'none';
-  RESULTS.innerHTML = '';
+  RESULTS.innerHTML   = '';
 });
