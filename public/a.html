@@ -54,18 +54,24 @@
       <tbody id="bookings-table"></tbody>
     </table>
 
-    <!-- Teacher Management -->
-    <h2>Manage Teachers</h2>
-    <form id="add-teacher-form">
-      <input id="new-teacher-name" placeholder="New Teacher Name" required />
-      <button>Add Teacher</button>
-    </form>
-    <table>
-      <thead>
-        <tr><th>ID</th><th>Name</th><th>Action</th></tr>
-      </thead>
-      <tbody id="teachers-table"></tbody>
-    </table>
+        <!-- Teacher Management -->
+        <h2>Manage Teachers</h2>
+        <form id="add-teacher-form">
+          <input id="new-teacher-name" placeholder="Teacher Name" required>
+          <input id="new-teacher-location" placeholder="Location (e.g. Sumner)" required>
+          <button>Add Teacher</button>
+        </form>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Location</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="teachers-table"></tbody>
+        </table>
   </div>
   <script src="js/admin.js"></script>
 </body>
