@@ -69,16 +69,36 @@ button {
   font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  margin:5px;
 }
 
 button:hover {
   background-color: #00625f;
 }
 
+/* Teacher result buttons */
+.teacher-btn {
+  background-color: #ffffff;
+  border: 1px solid #6bbaae;
+  border-radius: 6px;
+  padding: 10px 16px;
+  margin: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.teacher-btn:hover {
+  background-color: #e0f7f1;
+}
+
+.teacher-btn.selected {
+  background-color: #72a546;
+  color: #ffffff;
+  border-color: #72a546;
+}
+
 /* AM/PM slot buttons */
 .slot-btn {
-  background-color: #6bbaae;
+  background-color: #ffffff;
   border: 2px solid #6bbaae;
   border-radius: 6px;
   padding: 10px 16px;
@@ -88,13 +108,13 @@ button:hover {
 }
 
 .slot-btn:hover {
-  background-color: #00625f;
+  background-color: #e0f7f1;
 }
 
 .slot-btn.active {
-  background-color: #00625f;
+  background-color: #72a546;
   color: #ffffff;
-  border-color: #00625f;
+  border-color: #72a546;
 }
 
 table {
