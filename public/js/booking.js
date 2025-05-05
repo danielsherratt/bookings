@@ -1,64 +1,121 @@
-const DAY = document.getElementById('day');
-const TIME = document.getElementById('time');
-const FIND = document.getElementById('find');
-const RESULTS = document.getElementById('results');
-const FORM_WRAPPER = document.getElementById('booking-form');
-const TEACHER_NAME = document.getElementById('teacher-name');
-const AVAILABLE_HEADING = document.getElementById('available-heading');
-const POPUP = document.getElementById('confirmation-popup');
-const CLOSE_BTN = POPUP.querySelector('.close-btn');
+// public/js/booking.js
 
-let selectedTeacher, selectedDate, selectedStart;
+const TYPE      = document.getElementById('type');
+const ZOOM_DIV  = document.getElementById('zoom-controls');
+const INP_DIV   = document.getElementById('inperson-controls');
+const DAY1      = document.getElementById('day');
+const TIME      = document.getElementById('time');
+const DAY2      = document.getElementById('day2');
+const SLOT_BTNS = document.querySelectorAll('.slot-btn');
+const FIND      = document.getElementById('find');
+const RESULTS   = document.getElementById('results');
+const FORM_WR   = document.getElementById('booking-form');
+const TNAME     = document.getElementById('teacher-name');
+const POPUP     = document.getElementById('confirmation-popup');
+const CLOSE     = POPUP.querySelector('.close-btn');
 
-function pad(n) {
-  return n.toString().padStart(2, '0');
-}
+let selectedTeacher, selDate, selStart, selEnd;
+let selectedSlot = 'am'; // default for in-person
+
+function pad(n) { return n.toString().padStart(2,'0'); }
 
 function populateTimes() {
   TIME.innerHTML = '';
   for (let h = 8; h <= 16; h++) {
-    [0,30].forEach(m => {
+    [0, 30].forEach(m => {
       if (h === 16 && m > 0) return;
       const t = `${pad(h)}:${pad(m)}`;
-      const opt = document.createElement('option');
-      opt.value = t;
-      opt.textContent = t;
-      TIME.appendChild(opt);
+      TIME.innerHTML += `<option value="${t}">${t}</option>`;
     });
   }
 }
 
-function slotEndTime(start) {
-  let [h, m] = start.split(':').map(Number);
+function slotEnd(s) {
+  let [h, m] = s.split(':').map(Number);
   m += 30;
-  if (m >= 60) {
-    h++;
-    m -= 60;
-  }
+  if (m >= 60) { h++; m -= 60; }
   return `${pad(h)}:${pad(m)}`;
 }
 
+// Toggle controls on type change
+TYPE.addEventListener('change', () => {
+  if (TYPE.value === 'zoom') {
+    ZOOM_DIV.style.display = 'block';
+    INP_DIV.style.display  = 'none';
+  } else {
+    ZOOM_DIV.style.display = 'none';
+    INP_DIV.style.display  = 'block';
+  }
+});
+
+// Slot button behavior
+SLOT_BTNS.forEach(btn => {
+  btn.addEventListener('click', () => {
+    SLOT_BTNS.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedSlot = btn.dataset.slot;
+  });
+});
+
+// Safe JSON fetch helper
+async function safeFetchJson(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.error(`Fetch ${url} failed: ${res.status} ${res.statusText}`);
+      return [];
+    }
+    if (res.status === 204) {
+      // No content
+      return [];
+    }
+    const text = await res.text();
+    if (!text) {
+      return [];
+    }
+    return JSON.parse(text);
+  } catch (e) {
+    console.error(`Failed to fetch or parse JSON from ${url}:`, e);
+    return [];
+  }
+}
+
+// Main search function
 async function findTeachers() {
   RESULTS.textContent = 'Loading…';
-  AVAILABLE_HEADING.style.display = 'none';
+  document.getElementById('available-heading').style.display = 'none';
 
-  const dow = Number(DAY.value);
-  const start = TIME.value;
-  const end = slotEndTime(start);
+  // Determine date & times
+  let dow, start, end;
+  if (TYPE.value === 'zoom') {
+    dow   = +DAY1.value;
+    start = TIME.value;
+    end   = slotEnd(start);
+  } else {
+    dow = +DAY2.value;
+    if (selectedSlot === 'am') {
+      start = '08:30'; end = '12:30';
+    } else {
+      start = '12:30'; end = '16:30';
+    }
+  }
 
-  // Compute next date for that day-of-week
-  selectedDate = new Date();
-  selectedDate.setDate(
-    selectedDate.getDate() + ((dow + 7 - selectedDate.getDay()) % 7)
-  );
-  selectedStart = start;
+  // Compute actual next date string
+  const now = new Date();
+  now.setDate(now.getDate() + ((dow + 7 - now.getUTCDay()) % 7));
+  selDate  = now;
+  selStart = start;
+  selEnd   = end;
+  const iso = now.toISOString().slice(0,10);
 
+  // Fetch data
   const [teachers, unavail, bookings] = await Promise.all([
-    fetch('/api/teachers').then(r => r.json()),
-    fetch('/api/unavailability').then(r => r.json()),
-    fetch(`/api/bookings?date=${selectedDate.toISOString().slice(0,10)}`).then(r => r.json())
+    safeFetchJson('/api/teachers'),
+    safeFetchJson('/api/unavailability'),
+    safeFetchJson(`/api/bookings?date=${iso}`)
   ]);
 
+  // Filter availability
   const avail = teachers.filter(t => {
     if (unavail.some(u =>
       u.teacher_id === t.id &&
@@ -77,51 +134,51 @@ async function findTeachers() {
     return;
   }
 
-  AVAILABLE_HEADING.style.display = 'block';
+  document.getElementById('available-heading').style.display = 'block';
   RESULTS.innerHTML = avail.map(t =>
     `<button data-id="${t.id}" data-name="${t.name}">${t.name}</button>`
   ).join('');
 
   RESULTS.querySelectorAll('button').forEach(btn => {
-    btn.onclick = () => {
-      selectedTeacher = { id: Number(btn.dataset.id), name: btn.dataset.name };
-      TEACHER_NAME.textContent = btn.dataset.name;
-      FORM_WRAPPER.style.display = 'block';
-    };
+    btn.addEventListener('click', () => {
+      selectedTeacher = { id:+btn.dataset.id, name:btn.dataset.name };
+      TNAME.textContent  = btn.dataset.name;
+      FORM_WR.style.display = 'block';
+    });
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  populateTimes();
-  FIND.onclick = findTeachers;
+// Initialize controls
+populateTimes();
+TYPE.dispatchEvent(new Event('change'));
+SLOT_BTNS[0].click(); // select AM by default
 
-  CLOSE_BTN.onclick = () => {
-    POPUP.style.display = 'none';
+FIND.addEventListener('click', findTeachers);
+CLOSE.addEventListener('click', () => { POPUP.style.display = 'none'; });
+
+// Booking form submission
+document.getElementById('form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const form = e.target;
+  const data = {
+    teacher_id:   selectedTeacher.id,
+    date:         selDate.toISOString().slice(0,10),
+    start_time:   selStart,
+    end_time:     selEnd,
+    parent_name:  form.parent_name.value,
+    parent_email: form.parent_email.value,
+    student_name: form.student_name.value,
+    school_name:  form.school_name.value,
+    booking_type: TYPE.value
   };
 
-  document.getElementById('form').onsubmit = async e => {
-    e.preventDefault();
-    const data = {
-      teacher_id:   selectedTeacher.id,
-      date:         selectedDate.toISOString().slice(0,10),
-      start_time:   selectedStart,
-      end_time:     slotEndTime(selectedStart),
-      parent_name:  e.target.parent_name.value,
-      parent_email: e.target.parent_email.value,
-      student_name: e.target.student_name.value,
-      school_name:  e.target.school_name.value
-    };
+  await fetch('/api/bookings', {
+    method:       'POST',
+    headers:      { 'Content-Type': 'application/json' },
+    body:         JSON.stringify(data)
+  });
 
-    await fetch('/api/bookings', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json' },
-      body: JSON.stringify(data)
-    });
-
-    // Show confirmation popup
-    POPUP.style.display = 'flex';
-    FORM_WRAPPER.style.display = 'none';
-    RESULTS.innerHTML = '';
-    AVAILABLE_HEADING.style.display = 'none';
-  };
+  POPUP.style.display = 'flex';
+  FORM_WR.style.display  = 'none';
+  RESULTS.innerHTML      = '';
 });
