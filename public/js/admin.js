@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function reloadAdmin() {
-  // Fetch all data
+  // 1) Fetch all data
   const [teachers, unavail, bookings] = await Promise.all([
     fetch('/api/teachers').then(r => r.json()),
     fetch('/api/unavailability').then(r => r.json()),
@@ -21,8 +21,19 @@ async function reloadAdmin() {
   const teacherMap  = Object.fromEntries(teachers.map(t => [t.id, t.name]));
   const locationMap = Object.fromEntries(teachers.map(t => [t.id, t.location]));
 
+  // 2) Render Teachers table
   renderTeachers(teachers);
+
+  // 3) Populate teacher dropdown for Unavailability
+  const selT = document.getElementById('teacher-unavail');
+  selT.innerHTML = teachers
+    .map(t => `<option value="${t.id}">${t.name}</option>`)
+    .join('');
+
+  // 4) Render Unavailability table
   renderUnavailability(unavail, teacherMap);
+
+  // 5) Render Bookings table
   renderBookings(bookings, teacherMap, locationMap);
 }
 
@@ -30,7 +41,6 @@ function renderTeachers(teachers) {
   const tt = document.getElementById('teachers-table');
   tt.innerHTML = teachers.map(t => `
     <tr>
-      <td>${t.id}</td>
       <td>${t.name}</td>
       <td>${t.location || ''}</td>
       <td>
@@ -56,7 +66,6 @@ function renderUnavailability(unavail, teacherMap) {
   const dayNames = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday'};
   ut.innerHTML = unavail.map(u => `
     <tr>
-      <td>${u.id}</td>
       <td>${teacherMap[u.teacher_id] || u.teacher_name}</td>
       <td>${dayNames[u.day_of_week]}</td>
       <td>${u.start_time}–${u.end_time}</td>
@@ -81,22 +90,21 @@ function renderBookings(bookings, teacherMap, locationMap) {
   const bt = document.getElementById('bookings-table');
   const weekdayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   bt.innerHTML = bookings.map(b => {
-    const day  = weekdayNames[new Date(b.booking_date).getUTCDay()];
-    const time = `${b.start_time}–${b.end_time}`;
-    const type = b.booking_type === 'zoom' ? 'Zoom' : 'In Person';
-    const loc  = type === 'Zoom'
+    const dayName = weekdayNames[new Date(b.booking_date).getUTCDay()];
+    const time    = `${b.start_time}–${b.end_time}`;
+    const type    = b.booking_type === 'zoom' ? 'Zoom' : 'In Person';
+    const loc     = type === 'Zoom'
       ? 'Zoom'
       : (b.booking_location || locationMap[b.teacher_id] || '');
     return `
       <tr>
-        <td>${b.id}</td>
         <td>${teacherMap[b.teacher_id] || b.teacher_name}</td>
-        <td>${day}</td>
+        <td>${dayName}</td>
         <td>${time}</td>
         <td>${type}</td>
         <td>${loc}</td>
         <td>${b.parent_name}</td>
-        <td>${b.parent_email}</td>
+        <td><a href="mailto:${b.parent_email}">${b.parent_email}</a>/td>
         <td>${b.student_name}</td>
         <td>${b.school_name}</td>
         <td>
@@ -109,7 +117,7 @@ function renderBookings(bookings, teacherMap, locationMap) {
     btn.onclick = async () => {
       if (!confirm('Delete this booking?')) return;
       await fetch('/api/bookings', {
-        method: 'DELETE',
+        method:'DELETE',
         headers:{ 'Content-Type':'application/json' },
         body: JSON.stringify({ id: +btn.dataset.id })
       });
@@ -118,7 +126,6 @@ function renderBookings(bookings, teacherMap, locationMap) {
   });
 }
 
-// Handler: add a teacher
 async function addTeacher(e) {
   e.preventDefault();
   const name     = document.getElementById('new-teacher-name').value.trim();
@@ -133,7 +140,6 @@ async function addTeacher(e) {
   reloadAdmin();
 }
 
-// Handler: add unavailability
 async function addUnavailability() {
   const teacher_id = +document.getElementById('teacher-unavail').value;
   const days = Array.from(
@@ -152,24 +158,42 @@ async function addUnavailability() {
   reloadAdmin();
 }
 
-// Handler: export bookings to CSV
 async function exportBookingsCSV() {
-  const bookings = await fetch('/api/bookings').then(r => r.json());
+  // Fetch bookings and teacher names
+  const [bookings, teachers] = await Promise.all([
+    fetch('/api/bookings').then(r => r.json()),
+    fetch('/api/teachers').then(r => r.json())
+  ]);
   if (!bookings.length) return alert('No bookings to export.');
 
-  const headers = ['ID','Teacher','Date','Start Time','End Time','Type','Location','Parent','Email','Student','School'];
+  const teacherMap = Object.fromEntries(teachers.map(t => [t.id, t.name]));
+  const weekdayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  // CSV headers: use 'Day' instead of 'Date'
+  const headers = ['BookingNumber','Teacher','Day','Start Time','End Time','Type','Location','Parent','Email','Student','School'];
+
   const rows = bookings.map(b => {
-    const day = new Date(b.booking_date).toISOString().slice(0,10);
-    const type = b.booking_type === 'zoom' ? 'Zoom' : 'In Person';
-    const loc  = type === 'Zoom' ? 'Zoom' : (b.booking_location || '');
+    const dayName = weekdayNames[new Date(b.booking_date).getUTCDay()];
+    const type    = b.booking_type === 'zoom' ? 'Zoom' : 'In Person';
+    const loc     = type === 'Zoom'
+      ? 'Zoom'
+      : (b.booking_location || '');
     return [
-      b.id, b.teacher_name, day, b.start_time, b.end_time,
-      type, loc, b.parent_name, b.parent_email,
-      b.student_name, b.school_name
+      b.id,
+      teacherMap[b.teacher_id] || b.teacher_name,
+      dayName,
+      b.start_time,
+      b.end_time,
+      type,
+      loc,
+      b.parent_name,
+      b.parent_email,
+      b.student_name,
+      b.school_name
     ];
   });
 
-  // Always coerce to string before replace
+  // Build CSV, escaping quotes
   const csv = [headers, ...rows].map(r =>
     r.map(cell => {
       const field = cell != null ? String(cell) : '';
@@ -177,10 +201,11 @@ async function exportBookingsCSV() {
     }).join(',')
   ).join('\n');
 
+  // Download
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
   a.download = `bookings_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
