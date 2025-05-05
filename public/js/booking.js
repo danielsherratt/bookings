@@ -1,3 +1,5 @@
+// public/js/booking.js
+
 const TYPE      = document.getElementById('type');
 const ZOOM_DIV  = document.getElementById('zoom-controls');
 const INP_DIV   = document.getElementById('inperson-controls');
@@ -20,8 +22,8 @@ function pad(n) { return n.toString().padStart(2,'0'); }
 function populateTimes() {
   TIME.innerHTML = '';
   for (let h = 8; h <= 16; h++) {
-    [0, 30].forEach(m => {
-      if (h === 16 && m > 0) return;
+    [0,30].forEach(m => {
+      if (h===16 && m>0) return;
       const t = `${pad(h)}:${pad(m)}`;
       TIME.innerHTML += `<option value="${t}">${t}</option>`;
     });
@@ -29,33 +31,12 @@ function populateTimes() {
 }
 
 function slotEnd(s) {
-  let [h, m] = s.split(':').map(Number);
-  m += 30;
-  if (m >= 60) { h++; m -= 60; }
+  let [h,m] = s.split(':').map(Number);
+  m += 30; if (m>=60){ h++; m-=60; }
   return `${pad(h)}:${pad(m)}`;
 }
 
-// Toggle Zoom vs In Person controls
-TYPE.addEventListener('change', () => {
-  if (TYPE.value === 'zoom') {
-    ZOOM_DIV.style.display = 'block';
-    INP_DIV.style.display  = 'none';
-  } else {
-    ZOOM_DIV.style.display = 'none';
-    INP_DIV.style.display  = 'block';
-  }
-});
-
-// AM/PM slot buttons
-SLOT_BTNS.forEach(btn => {
-  btn.addEventListener('click', () => {
-    SLOT_BTNS.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedSlot = btn.dataset.slot;
-  });
-});
-
-// Helper that never throws on bad JSON / empty response
+// Safe JSON fetch helper
 async function safeFetchJson(url) {
   try {
     const res = await fetch(url);
@@ -73,6 +54,7 @@ async function safeFetchJson(url) {
   }
 }
 
+// Main search function
 async function findTeachers() {
   RESULTS.textContent = 'Loading…';
   document.getElementById('available-heading').style.display = 'none';
@@ -92,7 +74,7 @@ async function findTeachers() {
     }
   }
 
-  // Compute next actual date
+  // Compute actual next date
   const now = new Date();
   now.setDate(now.getDate() + ((dow + 7 - now.getUTCDay()) % 7));
   selDate  = now;
@@ -140,14 +122,33 @@ async function findTeachers() {
   });
 }
 
-// Initialization
+// Wire up controls to auto-run findTeachers on change
+TYPE.addEventListener('change', () => {
+  ZOOM_DIV.style.display = TYPE.value === 'zoom' ? 'block' : 'none';
+  INP_DIV.style.display  = TYPE.value === 'inperson' ? 'block' : 'none';
+  findTeachers();
+});
+DAY1.addEventListener('change', findTeachers);
+TIME.addEventListener('change', findTeachers);
+DAY2.addEventListener('change', findTeachers);
+SLOT_BTNS.forEach(btn => {
+  btn.addEventListener('click', () => {
+    SLOT_BTNS.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedSlot = btn.dataset.slot;
+    findTeachers();
+  });
+});
+
+// Initialize controls and load initial availability
 populateTimes();
 TYPE.dispatchEvent(new Event('change'));
-SLOT_BTNS[0].click();  // AM default
+SLOT_BTNS[0].click(); // select AM by default
 
 FIND.addEventListener('click', findTeachers);
 CLOSE.addEventListener('click', () => { POPUP.style.display = 'none'; });
 
+// Booking form submission
 document.getElementById('form').addEventListener('submit', async e => {
   e.preventDefault();
   const f = e.target;
