@@ -18,6 +18,15 @@ body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  background-color: #ffffff;
+  padding: 32px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
 .logo {
   margin-bottom: 24px;
 }
@@ -92,30 +101,9 @@ button:hover {
 }
 
 .teacher-btn.selected {
-  background-color: #72a546;
+  background-color: #00625f;
   color: #ffffff;
-  border-color: #72a546;
-}
-
-/* AM/PM slot buttons */
-.slot-btn {
-  background-color: #ffffff;
-  border: 2px solid #6bbaae;
-  border-radius: 6px;
-  padding: 10px 16px;
-  margin: 0 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.slot-btn:hover {
-  background-color: #e0f7f1;
-}
-
-.slot-btn.active {
-  background-color: #72a546;
-  color: #ffffff;
-  border-color: #72a546;
+  border-color: #00625f;
 }
 
 table {
