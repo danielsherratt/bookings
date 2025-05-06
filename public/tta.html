@@ -6,38 +6,36 @@
   <link href="css/styles.css" rel="stylesheet"/>
   <title>Admin Dashboard</title>
 
-  <script>
-  // Load preferences before the rest of the page renders
-  (async function() {
-    try {
-      const res = await fetch('/api/preferences');
-      if (!res.ok) return;
-      const { staff_classification, primary_color, secondary_color } = await res.json();
+  <!-- Load preferences once the DOM is parsed -->
+  <script defer>
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await fetch('/api/preferences');
+        if (!res.ok) return;
+        const { staff_classification, primary_color, secondary_color } = await res.json();
 
-      // Apply colours
-      document.documentElement.style.setProperty('--primary-color', primary_color);
-      document.documentElement.style.setProperty('--secondary-color', secondary_color);
+        // Apply colour scheme
+        document.documentElement.style.setProperty('--primary-color', primary_color);
+        document.documentElement.style.setProperty('--secondary-color', secondary_color);
 
-      // Update static labels in the HTML
-      // Main headings
-      document.getElementById('manage-teachers-heading').textContent =
-        `Manage ${staff_classification}s`;
-      document.getElementById('unavail-heading').textContent =
-        `Set ${staff_classification} Unavailability`;
-      document.getElementById('existing-unavail-heading').textContent =
-        `Existing ${staff_classification} Unavailability`;
-      document.getElementById('existing-bookings-heading').textContent =
-        `Existing Bookings`;
+        // Update headings & labels
+        document.getElementById('manage-teachers-heading')
+          .textContent = `Manage ${staff_classification}s`;
+        document.getElementById('unavail-heading')
+          .textContent = `Set ${staff_classification} Unavailability`;
+        document.getElementById('existing-unavail-heading')
+          .textContent = `Existing ${staff_classification} Unavailability`;
 
-      // Form placeholders/labels
-      document.getElementById('new-teacher-name').placeholder =
-        `${staff_classification} Name`;
-      document.querySelector('label[for="teacher-unavail"]').textContent =
-        `${staff_classification}:`;
-    } catch (e) {
-      console.error('Could not load preferences', e);
-    }
-  })();
+        // Update form labels/placeholders
+        document.getElementById('new-teacher-name')
+          .placeholder = `${staff_classification} Name`;
+        document.querySelector('label[for="teacher-unavail"]')
+          .textContent = `${staff_classification}:`;
+
+      } catch (e) {
+        console.error('Could not load preferences', e);
+      }
+    });
   </script>
 </head>
 <body>
@@ -127,6 +125,7 @@
       <tbody id="bookings-table"></tbody>
     </table>
   </div>
+
   <script src="js/admin.js"></script>
 </body>
 </html>
