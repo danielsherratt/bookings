@@ -164,11 +164,11 @@ FORM.addEventListener('submit', async e => {
   });
 
   if (res.status === 409) {
-    POPUP_MSG.textContent = 'Sorry, the booking has already been taken';
+    POPUP_MSG.textContent = 'Sorry, this booking was just taken, please start again';
   } else if (!res.ok) {
-    POPUP_MSG.textContent = 'Sorry, the booking has already been taken, please try again';
+    POPUP_MSG.textContent = 'An Error Occured, Please reload';
   } else {
-    POPUP_MSG.textContent = 'Booking created successfully!, Ko Taku Reo will be in touch to confirm the booking';
+    POPUP_MSG.textContent = 'Booking created successfully!, <br>Ko Taku Reo will be in touch to confirm this booking';
   }
 
   POPUP.style.display   = 'flex';
