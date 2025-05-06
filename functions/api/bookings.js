@@ -129,52 +129,6 @@ export async function onRequest(context) {
       );
     }
 
-    // 5) Send confirmation emails (Mailgun)
-    const auth  = 'Basic ' + btoa(`api:${env.MAILGUN_API_KEY}`);
-    const mgUrl = `https://api.mailgun.net/v3/${env.MAILGUN_DOMAIN}/messages`;
-
-    async function sendMail(params) {
-      await fetch(mgUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': auth,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: params
-      });
-    }
-
-    // parent email
-    const parentParams = new URLSearchParams();
-    parentParams.append('from',    env.SENDER_EMAIL);
-    parentParams.append('to',      parent_email);
-    parentParams.append('subject', 'Your Booking Confirmation');
-    parentParams.append('text',
-      `Hi ${parent_name},\n\n` +
-      `Your ${booking_type === 'zoom' ? 'Zoom session' : 'In Person'} is confirmed ` +
-      `on ${date} at ${start_time} (Location: ${bookingLocation}).\n\n` +
-      `Student: ${student_name}\nSchool: ${school_name}`
-    );
-
-    // admin copy
-    const adminParams = new URLSearchParams();
-    adminParams.append('from',    env.SENDER_EMAIL);
-    adminParams.append('to',      env.ADMIN_EMAIL);
-    adminParams.append('subject', 'New Booking Received');
-    adminParams.append('text',
-      `New booking:\n` +
-      `Teacher ID: ${teacher_id}\n` +
-      `Date: ${date}\nTime: ${start_time}–${end_time}\n` +
-      `Type: ${booking_type}\nLocation: ${bookingLocation}\n` +
-      `Parent: ${parent_name} <${parent_email}>\n` +
-      `Student: ${student_name}\nSchool: ${school_name}`
-    );
-
-    await Promise.all([
-      sendMail(parentParams),
-      sendMail(adminParams)
-    ]);
-
     return new Response(null, { status: 201 });
   }
 

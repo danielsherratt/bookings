@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function reloadAdmin() {
-  // 1) Fetch all data
+  // Fetch all data
   const [teachers, unavail, bookings] = await Promise.all([
     fetch('/api/teachers').then(r => r.json()),
     fetch('/api/unavailability').then(r => r.json()),
@@ -21,19 +21,8 @@ async function reloadAdmin() {
   const teacherMap  = Object.fromEntries(teachers.map(t => [t.id, t.name]));
   const locationMap = Object.fromEntries(teachers.map(t => [t.id, t.location]));
 
-  // 2) Render Teachers table
   renderTeachers(teachers);
-
-  // 3) Populate teacher dropdown for Unavailability
-  const selT = document.getElementById('teacher-unavail');
-  selT.innerHTML = teachers
-    .map(t => `<option value="${t.id}">${t.name}</option>`)
-    .join('');
-
-  // 4) Render Unavailability table
   renderUnavailability(unavail, teacherMap);
-
-  // 5) Render Bookings table
   renderBookings(bookings, teacherMap, locationMap);
 }
 
@@ -44,7 +33,7 @@ function renderTeachers(teachers) {
       <td>${t.name}</td>
       <td>${t.location || ''}</td>
       <td>
-        <button class="delete-teacher-btn" data-id="${t.id}"><i class="fa-solid fa-trash"></i></button>
+        <button class="delete-teacher-btn" data-id="${t.id}">Delete</button>
       </td>
     </tr>
   `).join('');
@@ -53,7 +42,7 @@ function renderTeachers(teachers) {
       if (!confirm('Delete this teacher and all related data?')) return;
       await fetch('/api/teachers', {
         method: 'DELETE',
-        headers:{ 'Content-Type':'application/json' },
+        headers: { 'Content-Type':'application/json' },
         body: JSON.stringify({ id: +btn.dataset.id })
       });
       reloadAdmin();
@@ -70,7 +59,7 @@ function renderUnavailability(unavail, teacherMap) {
       <td>${dayNames[u.day_of_week]}</td>
       <td>${u.start_time}–${u.end_time}</td>
       <td>
-        <button class="delete-unavail-btn" data-id="${u.id}"><i class="fa-solid fa-trash"></i></button>
+        <button class="delete-unavail-btn" data-id="${u.id}">Delete</button>
       </td>
     </tr>
   `).join('');
@@ -78,7 +67,7 @@ function renderUnavailability(unavail, teacherMap) {
     btn.onclick = async () => {
       await fetch('/api/unavailability', {
         method: 'DELETE',
-        headers:{ 'Content-Type':'application/json' },
+        headers: { 'Content-Type':'application/json' },
         body: JSON.stringify({ id: +btn.dataset.id })
       });
       reloadAdmin();
@@ -88,6 +77,12 @@ function renderUnavailability(unavail, teacherMap) {
 
 function renderBookings(bookings, teacherMap, locationMap) {
   const bt = document.getElementById('bookings-table');
+  // If no bookings, show a single row with "No bookings"
+  if (!bookings.length) {
+    bt.innerHTML = '<tr><td colspan="11">No bookings</td></tr>';
+    return;
+  }
+
   const weekdayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   bt.innerHTML = bookings.map(b => {
     const dayName = weekdayNames[new Date(b.booking_date).getUTCDay()];
@@ -104,11 +99,11 @@ function renderBookings(bookings, teacherMap, locationMap) {
         <td>${type}</td>
         <td>${loc}</td>
         <td>${b.parent_name}</td>
-        <td><a href="mailto:${b.parent_email}">${b.parent_email}</a></td>
+        <td><a href="mailto:${b.parent_email}">${b.parent_email}</a>/td>
         <td>${b.student_name}</td>
         <td>${b.school_name}</td>
         <td>
-          <button class="delete-booking-btn" data-id="${b.id}"><i class="fa-solid fa-trash"></i></button>
+          <button class="delete-booking-btn" data-id="${b.id}">Delete</button>
         </td>
       </tr>
     `;
@@ -159,7 +154,6 @@ async function addUnavailability() {
 }
 
 async function exportBookingsCSV() {
-  // Fetch bookings and teacher names
   const [bookings, teachers] = await Promise.all([
     fetch('/api/bookings').then(r => r.json()),
     fetch('/api/teachers').then(r => r.json())
@@ -168,9 +162,7 @@ async function exportBookingsCSV() {
 
   const teacherMap = Object.fromEntries(teachers.map(t => [t.id, t.name]));
   const weekdayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-
-  // CSV headers: use 'Day' instead of 'Date'
-  const headers = ['BookingNumber','Teacher','Day','Start Time','End Time','Type','Location','Parent','Email','Student','School'];
+  const headers = ['ID','Teacher','Day','Start Time','End Time','Type','Location','Parent','Email','Student','School'];
 
   const rows = bookings.map(b => {
     const dayName = weekdayNames[new Date(b.booking_date).getUTCDay()];
@@ -193,7 +185,6 @@ async function exportBookingsCSV() {
     ];
   });
 
-  // Build CSV, escaping quotes
   const csv = [headers, ...rows].map(r =>
     r.map(cell => {
       const field = cell != null ? String(cell) : '';
@@ -201,7 +192,6 @@ async function exportBookingsCSV() {
     }).join(',')
   ).join('\n');
 
-  // Download
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
