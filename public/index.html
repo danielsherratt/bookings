@@ -24,7 +24,7 @@
       const header = document.getElementById('booking-header');      
       const available = document.getElementById('available-header');
       if (header) header.textContent = `Book a ${staff_classification}`;
-      if (available) available.textContent = `Available ${staff_classification}`;
+      if (available) available.textContent = `Available ${staff_classification}(s)`;
 
      
     } catch (e) {
@@ -42,7 +42,7 @@
     </div>
 
     <!-- Dynamic heading -->
-    <h1 id="booking-header">Book a Teacher</h1>
+    <h1 id="booking-header"></h1>
 
     <label for="type">Booking Type:</label>
     <select id="type">
@@ -87,7 +87,7 @@
     </div>
 
 
-    <h2 id="available-heading" style="display:none;">Available Teachers</h2>
+    <h2 id="available-heading" style="display:none;"></h2>
     <div id="results"></div>
 
     <!-- Booking form -->
