@@ -6,55 +6,47 @@
   <link href="css/styles.css" rel="stylesheet"/>
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
   <title>Admin - Bookings Dashboard</title>
-  
+
   <script>
-  (async function() {
-    try {
-      const res = await fetch('/api/preferences');
-      if (!res.ok) return;
-      const { staff_classification, primary_color, secondary_color } = await res.json();
-
-      // 1) Apply colour scheme
-      document.documentElement.style.setProperty('--primary-color', primary_color);
-      document.documentElement.style.setProperty('--secondary-color', secondary_color);
-
-      // 2) Update all occurrences of "Teacher" to your classification
-      document.querySelectorAll('*').forEach(el => {
-        if (el.childNodes.length === 1 && el.childNodes[0].nodeType === Node.TEXT_NODE) {
-          const text = el.textContent.trim();
-          if (text === 'Teacher') {
+    (async function() {
+      try {
+        const res = await fetch('/api/preferences');
+        if (!res.ok) return;
+        const { staff_classification, primary_color, secondary_color } = await res.json();
+  
+        // 1) Apply colour scheme
+        document.documentElement.style.setProperty('--primary-color', primary_color);
+        document.documentElement.style.setProperty('--secondary-color', secondary_color);
+  
+        // 2) Swap literal "Teacher" labels for your classification
+        document.querySelectorAll('h2, th, label, input, button').forEach(el => {
+          const txt = el.textContent?.trim() || el.placeholder || '';
+          if (txt === 'Teacher') {
             el.textContent = staff_classification;
           }
-          if (text === 'Manage Teacher') {
-            //If your using Staff, remove the (s) so its not Staffs / Staff(s)
-            el.textContent = `Manage ${staff_classification}(s)`;
+          if (txt === 'Manage Teachers') {
+            el.textContent = `Manage ${staff_classification}s`;
           }
-          if (text === 'Existing Bookings') {
-            // leave this alone
+          if (el.placeholder === 'Teacher Name') {
+            el.placeholder = `${staff_classification} Name`;
           }
-          if (text === 'Set Unavailability') {
-            // leave this alone
+          if (el.getAttribute('for') === 'teacher-unavail') {
+            el.textContent = `${staff_classification}:`;
           }
-        }
-      });
-
-      // 3) Update placeholders & labels
-      const newTeacherInput = document.getElementById('new-teacher-name');
-      if (newTeacherInput) {
-        newTeacherInput.placeholder = `${staff_classification} Name`;
+        });
+  
+        // 3) Update the Add-Teacher form label
+        const nameInput = document.getElementById('new-teacher-name');
+        if (nameInput) nameInput.placeholder = `${staff_classification} Name`;
+  
+      } catch (e) {
+        console.error('Could not load preferences', e);
       }
-      const teacherUnavailLabel = document.querySelector('label[for="teacher-unavail"]');
-      if (teacherUnavailLabel) {
-        teacherUnavailLabel.textContent = `${staff_classification}:`;
-      }
-    } catch (e) {
-      console.error('Could not load preferences', e);
-    }
-  })();
-  </script>
+    })();
+    </script>
 </head>
 <body>
-  <div class="container">
+  <div class="container-admin">
     <h1>Admin Dashboard</h1>
 
      <!-- Existing Bookings -->
