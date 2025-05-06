@@ -1,6 +1,55 @@
 // public/js/admin.js
 
 document.addEventListener('DOMContentLoaded', () => {
+
+
+    // ——— Preferences ———
+    const prefForm  = document.getElementById('preferences-form');
+    const inpClass  = document.getElementById('pref-classification');
+    const inpPrimary   = document.getElementById('pref-primary-color');
+    const inpSecondary = document.getElementById('pref-secondary-color');
+  
+    // Fetch and populate preferences, then apply CSS variables & labels
+    fetch('/api/preferences')
+      .then(r => r.json())
+      .then(p => {
+        inpClass.value     = p.staff_classification;
+        inpPrimary.value   = p.primary_color;
+        inpSecondary.value = p.secondary_color;
+        applyPreferences(p);
+      });
+  
+    // Save preferences
+    prefForm.onsubmit = async e => {
+      e.preventDefault();
+      const payload = {
+        staff_classification: inpClass.value.trim(),
+        primary_color:        inpPrimary.value,
+        secondary_color:      inpSecondary.value
+      };
+      await fetch('/api/preferences', {
+        method: 'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+      });
+      applyPreferences(payload);
+      alert('Preferences saved.');
+    };
+  
+    // Apply CSS variables and update any “Teacher” labels
+    function applyPreferences({ staff_classification, primary_color, secondary_color }) {
+      document.documentElement.style.setProperty('--primary-color', primary_color);
+      document.documentElement.style.setProperty('--secondary-color', secondary_color);
+      // Update any existing “Teacher” headings/buttons if needed:
+      document.querySelectorAll('.teacher-btn, #teacher-unavail option, #add-teacher-form label').forEach(el => {
+        if (el.textContent.trim() === 'Teacher') {
+          el.textContent = staff_classification;
+        }
+      });
+    }
+
+
+
   // Wire up forms/buttons
   document.getElementById('add-teacher-form').onsubmit = addTeacher;
   document.getElementById('add-unavail').onclick    = addUnavailability;
@@ -8,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initial render
   reloadAdmin();
+
 });
 
 async function reloadAdmin() {
@@ -27,6 +77,13 @@ async function reloadAdmin() {
 }
 
 function renderTeachers(teachers) {
+  const nt = document.getElementById('teachers-table');
+  // If no Staff, show a single row with "No Staff"
+  if (!teachers.length) {
+    nt.innerHTML = '<tr><td colspan="11">No one works here yet <i class="fa-solid fa-face-sad-tear"></i></td></tr>';
+    return;
+  }
+
   const tt = document.getElementById('teachers-table');
   tt.innerHTML = teachers.map(t => `
     <tr>
@@ -51,6 +108,12 @@ function renderTeachers(teachers) {
 }
 
 function renderUnavailability(unavail, teacherMap) {
+  const uv = document.getElementById('unavail-table');
+  // If no unavailablity set, show a single row with "Everyones working"
+  if (!unavail.length) {
+    uv.innerHTML = '<tr><td colspan="11">Everyones Working! <i class="fa-solid fa-thumbs-up"></i></td></tr>';
+    return;
+  }
   const ut = document.getElementById('unavail-table');
   const dayNames = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday'};
   ut.innerHTML = unavail.map(u => `
@@ -79,7 +142,7 @@ function renderBookings(bookings, teacherMap, locationMap) {
   const bt = document.getElementById('bookings-table');
   // If no bookings, show a single row with "No bookings"
   if (!bookings.length) {
-    bt.innerHTML = '<tr><td colspan="11">No bookings</td></tr>';
+    bt.innerHTML = '<tr><td colspan="11">No bookings yet <i class="fa-solid fa-face-sad-tear"></i></td></tr>';
     return;
   }
 

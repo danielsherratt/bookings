@@ -4,24 +4,49 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css"/>
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
-  <title>NZSL Tutor Booking</title>
+  <title>NZSL Bookings Dashboard</title>
+
+  <script>
+  // Fetch admin‐set preferences and apply
+  (async function() {
+    try {
+      const res = await fetch('/api/preferences');
+      if (!res.ok) return;
+      const { staff_classification, primary_color, secondary_color } = await res.json();
+
+      // 1) Set CSS variables
+      document.documentElement.style.setProperty('--primary-color', primary_color);
+      document.documentElement.style.setProperty('--secondary-color', secondary_color);
+
+      // 2) Update the main heading
+      const header = document.getElementById('booking-header');      
+      const available = document.getElementById('available-header');
+      if (header) header.textContent = `Book a ${staff_classification}`;
+      if (available) available.textContent = `Available ${staff_classification}`;
+
+     
+    } catch (e) {
+      console.error('Could not load preferences', e);
+    }
+  })();
+  </script>
 </head>
 <body>
   <div class="container">
 
     <!-- Logo -->
     <div class="logo">
-      <img src="assets/logo.png" alt="Your Logo">
+      <img src="/logo.png" alt="Your Logo">
     </div>
 
-    <h1>Book a NZSL Tutor</h1>
+    <!-- Dynamic heading -->
+    <h1 id="booking-header">Book a Teacher</h1>
 
     <label for="type">Booking Type:</label>
     <select id="type">
-      <option value="zoom"><i class="fa-solid fa-video"></i> Zoom Session (30m)</option>
-      <option value="inperson"><i class="fa-solid fa-person"></i> In Person (4h)</option>
+      <option value="zoom">Zoom Session (30m)</option>
+      <option value="inperson">Teacher (4h)</option>
     </select>
 
     <!-- Zoom controls -->
@@ -52,25 +77,24 @@
 
       <label for="slot-select">Slot:</label>
       <select id="slot-select">
-        <option value="am">AM (08:30am–12:30pm)</option>
-        <option value="pm">PM (12:30pm–4:30pm)</option>
+        <option value="am">AM (08:30–12:30)</option>
+        <option value="pm">PM (12:30–16:30)</option>
       </select>
 
       <label for="location-select">Location:</label>
       <select id="location-select"></select>
     </div>
 
-    <!--  <button id="find">Find Available Teachers</button> -->
 
-    <h2 id="available-heading" style="display:none;">Available NZSL Tutors</h2>
+    <h2 id="available-heading" style="display:none;">Available Teachers</h2>
     <div id="results"></div>
 
     <!-- Booking form -->
     <div id="booking-form" style="display:none;">
-      <h2>Add details to your Booking with <span id="teacher-name"></span></h2>
+      <h2>Confirm Booking with <span id="teacher-name"></span></h2>
       <form id="form">
-        <input name="parent_name"  type="text"  placeholder="Bookers Name"   required><br>
-        <input name="parent_email" type="email" placeholder="Bookers Email"  required><br>
+        <input name="parent_name"  type="text"  placeholder="Parent Name"   required><br>
+        <input name="parent_email" type="email" placeholder="Parent Email"  required><br>
         <input name="student_name" type="text"  placeholder="Student Name"  required><br>
         <input name="school_name"  type="text"  placeholder="School Name"   required><br>
         <button type="submit">Book</button>
@@ -81,8 +105,7 @@
     <div id="confirmation-popup" class="modal" style="display:none;">
       <div class="modal-content">
         <button class="close-btn">&times;</button>
-        <br>
-        <p>Booking submitted successfully!</p>
+        <p>Booking created successfully!</p>
       </div>
     </div>
 

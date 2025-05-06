@@ -7,6 +7,31 @@
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
   <title>NZSL Bookings Dashboard</title>
 </head>
+
+<script>
+  // Fetch admin‐set preferences and apply
+  (async function() {
+    try {
+      const res = await fetch('/api/preferences');
+      if (!res.ok) return;
+      const { staff_classification, primary_color, secondary_color } = await res.json();
+
+      // 1) Set CSS variables
+      document.documentElement.style.setProperty('--primary-color', primary_color);
+      document.documentElement.style.setProperty('--secondary-color', secondary_color);
+
+      // 2) Update the main heading
+      const header = document.getElementById('booking-class');      
+      if (header) header.textContent = `${staff_classification}`;
+
+     
+    } catch (e) {
+      console.error('Could not load preferences', e);
+    }
+  })();
+  </script>
+
+
 <body>
   <div class="container-admin">
     <h1>NZSL Bookings Dashboard</h1>
@@ -17,7 +42,7 @@
  <table>
    <thead>
      <tr>
-       <th>Tutor</th>
+       <th><span id="teacher-class"></span></th>
        <th>Day</th>
        <th>Time</th>
        <th>Type</th>
@@ -33,16 +58,16 @@
  </table>
 
     <!-- Manage Teachers -->
-    <h2>Manage Tutors</h2>
+    <h2>Manage <span id="teacher-class"></span></h2>
     <form id="add-teacher-form">
-      <input id="new-teacher-name"  type="text"   placeholder="Tutor Name"   required>
+      <input id="new-teacher-name"  type="text"   placeholder="Name"   required>
       <input id="new-teacher-location" type="text" placeholder="Location (e.g. Christchurch North)" required>
       <button>Add Tutor</button>
     </form>
     <table>
       <thead>
         <tr>
-          <th>Tutor</th>
+          <th><span id="teacher-class"></span></th>
           <th>Location</th>
           <th>Delete</th>
         </tr>
@@ -52,7 +77,7 @@
 
     <!-- Set Unavailability -->
     <h2>Add Unavailability</h2>
-    <label for="teacher-unavail">Tutor:</label>
+    <label for="teacher-unavail"><span id="teacher-class"></span>:</label>
     <select id="teacher-unavail"></select><br/>
     <label>Day(s):</label><br/>
     <label><input type="checkbox" name="unavail-day" value="1"> Monday</label>
@@ -78,6 +103,18 @@
       </thead>
       <tbody id="unavail-table"></tbody>
     </table>
+
+    <!-- Preferences Section -->
+    <h2>Preferences</h2>
+    <form id="preferences-form">
+      <label for="pref-classification">Staff Classification:</label>
+      <input type="text" id="pref-classification" required>
+      <label for="pref-primary-color">Primary Color:</label>
+      <input type="color" id="pref-primary-color" required>
+      <label for="pref-secondary-color">Secondary Color:</label>
+      <input type="color" id="pref-secondary-color" required>
+      <button type="submit">Save Preferences</button>
+    </form>
 
     <p><i class="fa fa-envelope"></i> <a href="mailto:ITSupport@kotakureo.school.nz?Subject=NZSL Booking Dashboard">ITSupport</a></p>
 
