@@ -36,18 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Preferences saved.');
     };
   
-    // Apply CSS variables and update any “Teacher” labels
-    function applyPreferences({ staff_classification, primary_color, secondary_color }) {
-      document.documentElement.style.setProperty('--primary-color', primary_color);
-      document.documentElement.style.setProperty('--secondary-color', secondary_color);
-      // Update any existing “Teacher” headings/buttons if needed:
-      document.querySelectorAll('.teacher-btn, #teacher-unavail option, #add-teacher-form label').forEach(el => {
-        if (el.textContent.trim() === 'Teacher') {
-          el.textContent = staff_classification;
-        }
-      });
-    }
-
+ 
 
 
   // Wire up forms/buttons
