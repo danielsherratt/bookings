@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
         inpClass.value     = p.staff_classification;
         inpPrimary.value   = p.primary_color;
         inpSecondary.value = p.secondary_color;
-        applyPreferences(p);
       });
 
 
