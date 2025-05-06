@@ -1,19 +1,56 @@
 // public/js/admin.js
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Wire up Preferences form
-  document.getElementById('preferences-form').onsubmit = savePreferences;
 
-  // Wire up other forms/buttons
+
+    // ——— Preferences ———
+    const prefForm  = document.getElementById('preferences-form');
+    const inpClass  = document.getElementById('pref-classification');
+    const inpPrimary   = document.getElementById('pref-primary-color');
+    const inpSecondary = document.getElementById('pref-secondary-color');
+  
+    // Fetch and populate preferences, then apply CSS variables & labels
+    fetch('/api/preferences')
+      .then(r => r.json())
+      .then(p => {
+        inpClass.value     = p.staff_classification;
+        inpPrimary.value   = p.primary_color;
+        inpSecondary.value = p.secondary_color;
+        applyPreferences(p);
+      });
+  
+    // Save preferences
+    prefForm.onsubmit = async e => {
+      e.preventDefault();
+      const payload = {
+        staff_classification: inpClass.value.trim(),
+        primary_color:        inpPrimary.value,
+        secondary_color:      inpSecondary.value
+      };
+      await fetch('/api/preferences', {
+        method: 'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+      });
+      applyPreferences(payload);
+      alert('Preferences saved.');
+    };
+  
+ 
+
+
+  // Wire up forms/buttons
   document.getElementById('add-teacher-form').onsubmit = addTeacher;
   document.getElementById('add-unavail').onclick    = addUnavailability;
   document.getElementById('export-csv').onclick     = exportBookingsCSV;
 
-  // Initial data load
+  // Initial render
   reloadAdmin();
+
 });
 
 async function reloadAdmin() {
+  // Fetch all data
   const [teachers, unavail, bookings] = await Promise.all([
     fetch('/api/teachers').then(r => r.json()),
     fetch('/api/unavailability').then(r => r.json()),
@@ -26,21 +63,23 @@ async function reloadAdmin() {
   renderTeachers(teachers);
   renderUnavailability(unavail, teacherMap);
   renderBookings(bookings, teacherMap, locationMap);
-
-  // Populate teacher dropdown for Unavailability
-  document.getElementById('teacher-unavail').innerHTML =
-    teachers.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
 }
 
 function renderTeachers(teachers) {
+  const nt = document.getElementById('teachers-table');
+  // If no Staff, show a single row with "No Staff"
+  if (!teachers.length) {
+    nt.innerHTML = '<tr><td colspan="11">No one works here yet <i class="fa-solid fa-face-sad-tear"></i></td></tr>';
+    return;
+  }
+
   const tt = document.getElementById('teachers-table');
   tt.innerHTML = teachers.map(t => `
     <tr>
-      <td>${t.id}</td>
       <td>${t.name}</td>
       <td>${t.location || ''}</td>
       <td>
-        <button class="delete-teacher-btn" data-id="${t.id}">Delete</button>
+        <button class="delete-teacher-btn" data-id="${t.id}"><i class="fa-solid fa-trash"></i></button>
       </td>
     </tr>
   `).join('');
@@ -58,16 +97,21 @@ function renderTeachers(teachers) {
 }
 
 function renderUnavailability(unavail, teacherMap) {
+  const uv = document.getElementById('unavail-table');
+  // If no unavailablity set, show a single row with "Everyones working"
+  if (!unavail.length) {
+    uv.innerHTML = '<tr><td colspan="11">Everyones Working! <i class="fa-solid fa-thumbs-up"></i></td></tr>';
+    return;
+  }
   const ut = document.getElementById('unavail-table');
   const dayNames = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday'};
   ut.innerHTML = unavail.map(u => `
     <tr>
-      <td>${u.id}</td>
       <td>${teacherMap[u.teacher_id] || u.teacher_name}</td>
       <td>${dayNames[u.day_of_week]}</td>
       <td>${u.start_time}–${u.end_time}</td>
       <td>
-        <button class="delete-unavail-btn" data-id="${u.id}">Delete</button>
+        <button class="delete-unavail-btn" data-id="${u.id}"><i class="fa-solid fa-trash"></i></button>
       </td>
     </tr>
   `).join('');
@@ -85,10 +129,12 @@ function renderUnavailability(unavail, teacherMap) {
 
 function renderBookings(bookings, teacherMap, locationMap) {
   const bt = document.getElementById('bookings-table');
+  // If no bookings, show a single row with "No bookings"
   if (!bookings.length) {
-    bt.innerHTML = '<tr><td colspan="11">No bookings</td></tr>';
+    bt.innerHTML = '<tr><td colspan="11">No bookings yet <i class="fa-solid fa-face-sad-tear"></i></td></tr>';
     return;
   }
+
   const weekdayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   bt.innerHTML = bookings.map(b => {
     const dayName = weekdayNames[new Date(b.booking_date).getUTCDay()];
@@ -99,18 +145,17 @@ function renderBookings(bookings, teacherMap, locationMap) {
       : (b.booking_location || locationMap[b.teacher_id] || '');
     return `
       <tr>
-        <td>${b.id}</td>
         <td>${teacherMap[b.teacher_id] || b.teacher_name}</td>
         <td>${dayName}</td>
         <td>${time}</td>
         <td>${type}</td>
         <td>${loc}</td>
         <td>${b.parent_name}</td>
-        <td>${b.parent_email}</td>
+        <td><a href="mailto:${b.parent_email}">${b.parent_email}</a>/td>
         <td>${b.student_name}</td>
         <td>${b.school_name}</td>
         <td>
-          <button class="delete-booking-btn" data-id="${b.id}">Delete</button>
+          <button class="delete-booking-btn" data-id="${b.id}"><i class="fa-solid fa-trash"></i></button>
         </td>
       </tr>
     `;
@@ -119,7 +164,7 @@ function renderBookings(bookings, teacherMap, locationMap) {
     btn.onclick = async () => {
       if (!confirm('Delete this booking?')) return;
       await fetch('/api/bookings', {
-        method: 'DELETE',
+        method:'DELETE',
         headers:{ 'Content-Type':'application/json' },
         body: JSON.stringify({ id: +btn.dataset.id })
       });
@@ -174,7 +219,9 @@ async function exportBookingsCSV() {
   const rows = bookings.map(b => {
     const dayName = weekdayNames[new Date(b.booking_date).getUTCDay()];
     const type    = b.booking_type === 'zoom' ? 'Zoom' : 'In Person';
-    const loc     = type === 'Zoom' ? 'Zoom' : (b.booking_location || '');
+    const loc     = type === 'Zoom'
+      ? 'Zoom'
+      : (b.booking_location || '');
     return [
       b.id,
       teacherMap[b.teacher_id] || b.teacher_name,
@@ -204,17 +251,4 @@ async function exportBookingsCSV() {
   a.download = `bookings_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
-}
-
-async function savePreferences(e) {
-  e.preventDefault();
-  const staff_classification = document.getElementById('pref-classification').value.trim();
-  const primary_color        = document.getElementById('pref-primary-color').value;
-  const secondary_color      = document.getElementById('pref-secondary-color').value;
-  await fetch('/api/preferences', {
-    method: 'POST',
-    headers:{ 'Content-Type':'application/json' },
-    body: JSON.stringify({ staff_classification, primary_color, secondary_color })
-  });
-  alert('Preferences saved.');
 }
