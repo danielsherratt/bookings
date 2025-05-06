@@ -166,9 +166,9 @@ FORM.addEventListener('submit', async e => {
   if (res.status === 409) {
     POPUP_MSG.textContent = 'Sorry, the booking has already been taken';
   } else if (!res.ok) {
-    POPUP_MSG.textContent = 'Sorry, an unexpected error occurred';
+    POPUP_MSG.textContent = 'Sorry, the booking has already been taken, please try again';
   } else {
-    POPUP_MSG.textContent = 'Booking created successfully!';
+    POPUP_MSG.textContent = 'Booking created successfully!, Ko Taku Reo will be in touch to confirm the booking';
   }
 
   POPUP.style.display   = 'flex';
