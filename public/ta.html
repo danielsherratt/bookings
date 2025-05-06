@@ -55,20 +55,31 @@
   <div class="container">
     <h1>Admin Dashboard</h1>
 
-    <!-- Preferences Section (unchanged)-->
-    <h2>Preferences</h2>
-    <form id="preferences-form">
-      <label for="pref-classification">Staff Classification:</label>
-      <input type="text" id="pref-classification" required>
-      <label for="pref-primary-color">Primary Color:</label>
-      <input type="color" id="pref-primary-color" required>
-      <label for="pref-secondary-color">Secondary Color:</label>
-      <input type="color" id="pref-secondary-color" required>
-      <button type="submit">Save Preferences</button>
-    </form>
+     <!-- Existing Bookings -->
+     <h2>Current Bookings</h2>
+     <button id="export-csv">Export Bookings CSV</button>
+     <table>
+       <thead>
+         <tr>
+           <th>Teacher</th>
+           <th>Day</th>
+           <th>Time</th>
+           <th>Type</th>
+           <th>Location</th>
+           <th>Parent</th>
+           <th>Email</th>
+           <th>Student</th>
+           <th>School</th>
+           <th>Action</th>
+         </tr>
+       </thead>
+       <tbody id="bookings-table"></tbody>
+     </table>
+
+
 
     <!-- Manage Teachers -->
-    <h2 id="manage-teachers-heading">Manage Teachers</h2>
+    <h2 id="manage-teachers-heading">Manage Teacher</h2>
     <form id="add-teacher-form">
       <input id="new-teacher-name" placeholder="Teacher Name" required>
       <input id="new-teacher-location" placeholder="Location (e.g. Sumner)" required>
@@ -77,7 +88,6 @@
     <table>
       <thead>
         <tr>
-          <th>ID</th>
           <th>Teacher</th>
           <th>Location</th>
           <th>Action</th>
@@ -87,7 +97,7 @@
     </table>
 
     <!-- Set Unavailability -->
-    <h2>Set Unavailability</h2>
+    <h2>Add Unavailability</h2>
     <label for="teacher-unavail">Teacher:</label>
     <select id="teacher-unavail"></select><br/>
     <label>Day(s):</label><br/>
@@ -102,11 +112,10 @@
     <input type="time" id="end-unavail" value="12:00"/><br/>
     <button id="add-unavail">Add Unavailability</button>
 
-    <h3>Existing Unavailability</h3>
+    <h2>Existing Unavailability</h2>
     <table>
       <thead>
         <tr>
-          <th>ID</th>
           <th>Teacher</th>
           <th>Day</th>
           <th>Time</th>
@@ -116,27 +125,18 @@
       <tbody id="unavail-table"></tbody>
     </table>
 
-    <!-- Existing Bookings -->
-    <h2>Existing Bookings</h2>
-    <button id="export-csv">Export Bookings CSV</button>
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Teacher</th>
-          <th>Day</th>
-          <th>Time</th>
-          <th>Type</th>
-          <th>Location</th>
-          <th>Parent</th>
-          <th>Email</th>
-          <th>Student</th>
-          <th>School</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="bookings-table"></tbody>
-    </table>
+        <!-- Preferences Section (unchanged)-->
+        <h2>Preferences</h2>
+        <form id="preferences-form">
+          <label for="pref-classification">Staff Classification:</label>
+          <input type="text" id="pref-classification" required>
+          <label for="pref-primary-color">Primary Color:</label>
+          <input type="color" id="pref-primary-color" required>
+          <label for="pref-secondary-color">Secondary Color:</label>
+          <input type="color" id="pref-secondary-color" required>
+          <button type="submit">Save Preferences</button>
+        </form>
+   
   </div>
   <script src="js/admin.js"></script>
 </body>
