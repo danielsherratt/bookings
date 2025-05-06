@@ -23,12 +23,6 @@
       const header = document.getElementById('booking-header');
       if (header) header.textContent = `Book a ${staff_classification}`;
 
-      // 3) Update In-Person option label (keep the "(4h)")
-      const inpersonOption = document.querySelector('#type option[value="inperson"]');
-      if (inpersonOption) {
-        inpersonOption.textContent = `${staff_classification} (4h)`;
-      }
-
       // 4) Update Available heading
       const availHeading = document.getElementById('available-heading');
       if (availHeading) {

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link href="css/styles.css" rel="stylesheet"/>
+  <title>Admin Dashboard</title>
+
+  <script>
+  (async function() {
+    try {
+      const res = await fetch('/api/preferences');
+      if (!res.ok) return;
+      const { staff_classification, primary_color, secondary_color } = await res.json();
+
+      // 1) Apply colour scheme
+      document.documentElement.style.setProperty('--primary-color', primary_color);
+      document.documentElement.style.setProperty('--secondary-color', secondary_color);
+
+      // 2) Update all occurrences of "Teacher" to your classification
+      document.querySelectorAll('*').forEach(el => {
+        if (el.childNodes.length === 1 && el.childNodes[0].nodeType === Node.TEXT_NODE) {
+          const text = el.textContent.trim();
+          if (text === 'Teacher') {
+            el.textContent = staff_classification;
+          }
+          if (text === 'Manage Teachers') {
+            el.textContent = `Manage ${staff_classification}s`;
+          }
+          if (text === 'Existing Bookings') {
+            // leave this alone
+          }
+          if (text === 'Set Unavailability') {
+            // leave this alone
+          }
+        }
+      });
+
+      // 3) Update placeholders & labels
+      const newTeacherInput = document.getElementById('new-teacher-name');
+      if (newTeacherInput) {
+        newTeacherInput.placeholder = `${staff_classification} Name`;
+      }
+      const teacherUnavailLabel = document.querySelector('label[for="teacher-unavail"]');
+      if (teacherUnavailLabel) {
+        teacherUnavailLabel.textContent = `${staff_classification}:`;
+      }
+    } catch (e) {
+      console.error('Could not load preferences', e);
+    }
+  })();
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Admin Dashboard</h1>
+
+    <!-- Preferences Section (unchanged)-->
+    <h2>Preferences</h2>
+    <form id="preferences-form">
+      <label for="pref-classification">Staff Classification:</label>
+      <input type="text" id="pref-classification" required>
+      <label for="pref-primary-color">Primary Color:</label>
+      <input type="color" id="pref-primary-color" required>
+      <label for="pref-secondary-color">Secondary Color:</label>
+      <input type="color" id="pref-secondary-color" required>
+      <button type="submit">Save Preferences</button>
+    </form>
+
+    <!-- Manage Teachers -->
+    <h2 id="manage-teachers-heading">Manage Teachers</h2>
+    <form id="add-teacher-form">
+      <input id="new-teacher-name" placeholder="Teacher Name" required>
+      <input id="new-teacher-location" placeholder="Location (e.g. Sumner)" required>
+      <button>Add Teacher</button>
+    </form>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Teacher</th>
+          <th>Location</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="teachers-table"></tbody>
+    </table>
+
+    <!-- Set Unavailability -->
+    <h2>Set Unavailability</h2>
+    <label for="teacher-unavail">Teacher:</label>
+    <select id="teacher-unavail"></select><br/>
+    <label>Day(s):</label><br/>
+    <label><input type="checkbox" name="unavail-day" value="1"> Monday</label>
+    <label><input type="checkbox" name="unavail-day" value="2"> Tuesday</label>
+    <label><input type="checkbox" name="unavail-day" value="3"> Wednesday</label>
+    <label><input type="checkbox" name="unavail-day" value="4"> Thursday</label>
+    <label><input type="checkbox" name="unavail-day" value="5"> Friday</label><br/>
+    <label for="start-unavail">Start Time:</label>
+    <input type="time" id="start-unavail" value="08:30"/>
+    <label for="end-unavail">End Time:</label>
+    <input type="time" id="end-unavail" value="12:00"/><br/>
+    <button id="add-unavail">Add Unavailability</button>
+
+    <h3>Existing Unavailability</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Teacher</th>
+          <th>Day</th>
+          <th>Time</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="unavail-table"></tbody>
+    </table>
+
+    <!-- Existing Bookings -->
+    <h2>Existing Bookings</h2>
+    <button id="export-csv">Export Bookings CSV</button>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Teacher</th>
+          <th>Day</th>
+          <th>Time</th>
+          <th>Type</th>
+          <th>Location</th>
+          <th>Parent</th>
+          <th>Email</th>
+          <th>Student</th>
+          <th>School</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="bookings-table"></tbody>
+    </table>
+  </div>
+  <script src="js/admin.js"></script>
+</body>
+</html>
