@@ -4,29 +4,36 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
   <link href="css/styles.css" rel="stylesheet"/>
-  <title>NZSL Bookings Dashboard</title>
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <title>NZSL Bookings</title>
 
   <script>
-  // Fetch admin‐set preferences and apply
   (async function() {
     try {
       const res = await fetch('/api/preferences');
       if (!res.ok) return;
       const { staff_classification, primary_color, secondary_color } = await res.json();
 
-      // 1) Set CSS variables
+      // 1) Apply colours
       document.documentElement.style.setProperty('--primary-color', primary_color);
       document.documentElement.style.setProperty('--secondary-color', secondary_color);
 
-      // 2) Update the main heading
-      const header = document.getElementById('booking-header');      
-      const available = document.getElementById('available-header');
+      // 2) Update main heading
+      const header = document.getElementById('booking-header');
       if (header) header.textContent = `Book a ${staff_classification}`;
-      if (available) available.textContent = `Available ${staff_classification}(s)`;
 
-     
+      // 3) Update In-Person option label (keep the "(4h)")
+      const inpersonOption = document.querySelector('#type option[value="inperson"]');
+      if (inpersonOption) {
+        inpersonOption.textContent = `${staff_classification} (4h)`;
+      }
+
+      // 4) Update Available heading
+      const availHeading = document.getElementById('available-heading');
+      if (availHeading) {
+        availHeading.textContent = `Available ${staff_classification}s`;
+      }
     } catch (e) {
       console.error('Could not load preferences', e);
     }
@@ -42,7 +49,7 @@
     </div>
 
     <!-- Dynamic heading -->
-    <h1 id="booking-header"></h1>
+    <h1 id="booking-header">Book a Teacher</h1>
 
     <label for="type">Booking Type:</label>
     <select id="type">
@@ -65,7 +72,7 @@
       <select id="time"></select>
     </div>
 
-    <!-- In Person controls -->
+    <!-- In-Person controls -->
     <div id="inperson-controls" style="display:none;">
       <label for="day2">Day:</label>
       <select id="day2">
@@ -86,8 +93,8 @@
       <select id="location-select"></select>
     </div>
 
-
-    <h2 id="available-heading" style="display:none;"></h2>
+    <!-- This text is now dynamic -->
+    <h2 id="available-heading" style="display:none;">Available Teachers</h2>
     <div id="results"></div>
 
     <!-- Booking form -->
