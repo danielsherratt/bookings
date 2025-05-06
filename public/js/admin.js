@@ -1,6 +1,24 @@
 // public/js/admin.js
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    // ——— Preferences ———
+    const prefForm  = document.getElementById('preferences-form');
+    const inpClass  = document.getElementById('pref-classification');
+    const inpPrimary   = document.getElementById('pref-primary-color');
+    const inpSecondary = document.getElementById('pref-secondary-color');
+  
+    // Fetch and populate preferences, then apply CSS variables & labels
+    fetch('/api/preferences')
+      .then(r => r.json())
+      .then(p => {
+        inpClass.value     = p.staff_classification;
+        inpPrimary.value   = p.primary_color;
+        inpSecondary.value = p.secondary_color;
+        applyPreferences(p);
+      });
+
+
   // Wire up Preferences form
   document.getElementById('preferences-form').onsubmit = savePreferences;
 
