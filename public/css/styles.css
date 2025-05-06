@@ -1,8 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;600&display=swap');
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css');
 
+:root {
+  --primary-color:   #00625f;
+  --secondary-color: #6bbaae;
+  --font-stack:      'Work Sans', sans-serif;
+}
+
 body {
-  font-family: 'Work Sans', sans-serif;
+  font-family:  var(--font-stack);
   background-color: #f2faf4;
   color: #003541;
   text-align: center;
@@ -48,7 +54,7 @@ text-decoration: none;
 }
 
 h1, h2 {
-  color: #00625f;
+  color:  var(--primary-color);
   margin-bottom: 16px;
 }
 
@@ -80,7 +86,7 @@ input[type="text"]:focus {
 }
 
 button {
-  background-color: #00625f;
+  background-color: var(--primary-color);
   color: #ffffff;
   border: none;
   padding: 12px 20px;
@@ -97,8 +103,8 @@ button:hover {
 
 /* Teacher result buttons */
 .teacher-btn {
-  background-color: #00625f;
-  border: 1px solid #00625f;
+  background-color: var(--primary-color);
+  border: 1px solid var(--primary-color);
   border-radius: 6px;
   padding: 10px 16px;
   margin: 6px;
@@ -159,7 +165,7 @@ th {
   border: none;
   font-size: 1.5rem;
   font-weight: 600;
-  color: #003541;
+  color:  var(--primary-color);
   cursor: pointer;
   z-index: 10;
 }
