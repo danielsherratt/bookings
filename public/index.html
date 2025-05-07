@@ -106,7 +106,7 @@
       const zoomOpt = document.querySelector('#type option[value="zoom"]');
       zoomOpt.textContent = `Zoom Session (${p.zoom_duration} min)`;
       const inOpt = document.querySelector('#type option[value="inperson"]');
-      inOpt.textContent = `(${p.inperson_duration % 60 === 0
+      inOpt.textContent = `In Person (${p.inperson_duration % 60 === 0
         ? (p.inperson_duration / 60) + 'h'
         : p.inperson_duration + ' min'})`;
     } catch (e) {
