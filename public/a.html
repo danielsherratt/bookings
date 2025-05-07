@@ -10,6 +10,7 @@
 <body>
   <div class="container-admin">
     <h1 id="admin-header">Admin Booking Dashboard</h1>
+    <br><br>
        <!-- Bookings -->
        <h2 id="existing-bookings-heading">Existing Bookings</h2>
        <button id="export-csv"><i class="fa-solid fa-file-export"></i> Export Bookings</button>
@@ -30,7 +31,7 @@
          </thead>
          <tbody id="bookings-table"></tbody>
        </table>
-
+<br><br>
     <!-- Manage Teachers -->
     <h2 id="manage-teachers-heading">Manage Teachers</h2>
     <form id="add-teacher-form">
@@ -48,7 +49,7 @@
       </thead>
       <tbody id="teachers-table"></tbody>
     </table>
-
+    <br><br>
     <!-- Unavailability -->
     <h2 id="unavail-heading">Add Unavailability</h2>
     <label for="teacher-unavail">Teacher:</label>
@@ -63,7 +64,7 @@
     <label for="end-unavail">End Time:</label> <input type="time" id="end-unavail" value="12:00"/>
     <br>
     <button id="add-unavail">Add Unavailability</button>
-
+    <br><br>
     <h2 id="existing-unavail-heading">Existing Unavailability</h2>
     <table>
       <thead>
@@ -77,6 +78,7 @@
       <tbody id="unavail-table"></tbody>
     </table>
 
+    <br><br>
 <!-- Preferences -->
 <h2>Preferences</h2>
 <form id="preferences-form">
@@ -88,12 +90,12 @@
   <br><br>
   <label>
     <input type="checkbox" id="pref-show-zoom">
-    Show Zoom Bookings in Admin
+    Show Zoom Bookings
   </label>
 
   <label>
     <input type="checkbox" id="pref-show-inperson">
-    Show In-Person Bookings in Admin
+    Show In-Person Bookings
   </label>
 
   <label for="pref-zoom-duration">Zoom Duration (minutes):</label> <input type="number" id="pref-zoom-duration" min="1" required>
@@ -102,7 +104,7 @@
   <button type="submit">Save Preferences</button>
 </form>
 <br>
-<a href="mailto:daniel.sherratt@neweratech.com" target="_blank"><i class="fa-solid fa-envelope"> Daniel</i></a>
+<h3><a href="mailto:daniel.sherratt@neweratech.com" target="_blank"><i class="fa-solid fa-envelope"> Daniel</i></a></h3>
 
   </div>
 

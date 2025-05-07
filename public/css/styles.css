@@ -67,7 +67,8 @@ label {
 select,
 input[type="time"],
 input[type="email"],
-input[type="text"] {
+input[type="text"],
+input[type="number"] {
   width: 100%;
   max-width: 320px;
   padding: 10px;
