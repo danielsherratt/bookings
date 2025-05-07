@@ -96,12 +96,6 @@ function renderUnavailability(unavail, teacherMap) {
 
 function renderBookings(bookings, teacherMap, locationMap) {
   const bt = document.getElementById('bookings-table');
-  // If no bookings, show a single row with "No bookings"
-  if (!bookings.length) {
-    bt.innerHTML = '<tr><td colspan="11">No bookings yet <i class="fa-solid fa-face-sad-tear"></i></td></tr>';
-    return;
-  }
-  const bt = document.getElementById('bookings-table');
   if (!bookings.length) {
     bt.innerHTML = '<tr><td colspan="11">No bookings</td></tr>';
     return;
