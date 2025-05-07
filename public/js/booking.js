@@ -1,5 +1,3 @@
-// public/js/booking.js
-
 const TYPE        = document.getElementById('type');
 const ZOOM_DIV    = document.getElementById('zoom-controls');
 const INP_DIV     = document.getElementById('inperson-controls');
@@ -14,49 +12,53 @@ const FORM_WR     = document.getElementById('booking-form');
 const TNAME       = document.getElementById('teacher-name');
 const POPUP       = document.getElementById('confirmation-popup');
 const CLOSE       = POPUP.querySelector('.close-btn');
-const POPUP_MSG   = POPUP.querySelector('.modal-content p');
 const FORM        = document.getElementById('form');
 
 let selectedTeacher, selDate, selStart, selEnd;
 
-function pad(n){ return n.toString().padStart(2,'0'); }
+// Pad helper
+function pad(n) { return String(n).padStart(2,'0'); }
 
+// Convert "HH:MM" → "h:MM AM/PM"
+function format12(hm) {
+  let [h,m] = hm.split(':').map(Number);
+  const ampm = h < 12 ? 'AM' : 'PM';
+  h = h % 12 || 12;
+  return `${h}:${pad(m)} ${ampm}`;
+}
+
+// Populate TIME in 12-hour labels
 function populateTimes() {
   TIME.innerHTML = '';
   for (let h=8; h<=16; h++) {
     [0,30].forEach(m => {
       if (h===16 && m>0) return;
-      const t = `${pad(h)}:${pad(m)}`;
-      TIME.innerHTML += `<option value="${t}">${t}</option>`;
+      const val = `${pad(h)}:${pad(m)}`;
+      TIME.innerHTML += `<option value="${val}">${format12(val)}</option>`;
     });
   }
 }
 
+// Compute end = +30m
+function slotEnd(s) {
+  let [h,m]=s.split(':').map(Number);
+  m+=30; if (m>=60){h++;m-=60;}
+  return `${pad(h)}:${pad(m)}`;
+}
+
 async function safeFetchJson(url) {
   try {
-    const res = await fetch(url);
-    if (!res.ok || res.status === 204) return [];
-    const text = await res.text();
-    return text ? JSON.parse(text) : [];
-  } catch {
-    return [];
-  }
+    const r = await fetch(url);
+    if (!r.ok||r.status===204) return [];
+    const t = await r.text();
+    return t ? JSON.parse(t) : [];
+  } catch { return []; }
 }
 
 async function populateLocations() {
   const teachers = await safeFetchJson('/api/teachers');
-  const locations = [...new Set(
-    teachers.map(t => t.location).filter(l => l)
-  )];
-  LOC_SELECT.innerHTML = locations
-    .map(l => `<option value="${l}">${l}</option>`)
-    .join('');
-}
-
-function slotEnd(s) {
-  let [h,m] = s.split(':').map(Number);
-  m += 30; if (m >= 60) { h++; m -= 60; }
-  return `${pad(h)}:${pad(m)}`;
+  const locs = [...new Set(teachers.map(t=>t.location).filter(l=>l))];
+  LOC_SELECT.innerHTML = locs.map(l=>`<option>${l}</option>`).join('');
 }
 
 async function findTeachers() {
@@ -70,18 +72,13 @@ async function findTeachers() {
     end   = slotEnd(start);
   } else {
     dow = +DAY2.value;
-    if (SLOT_SELECT.value === 'am') {
-      start = '08:30'; end = '12:30';
-    } else {
-      start = '12:30'; end = '16:30';
-    }
+    if (SLOT_SELECT.value==='am') { start='08:30'; end='12:30'; }
+    else                         { start='12:30'; end='16:30'; }
   }
 
   const now = new Date();
-  now.setDate(now.getDate() + ((dow + 7 - now.getUTCDay()) % 7));
-  selDate  = now;
-  selStart = start;
-  selEnd   = end;
+  now.setDate(now.getDate()+((dow+7-now.getUTCDay())%7));
+  selDate  = now; selStart=start; selEnd=end;
   const iso = now.toISOString().slice(0,10);
 
   const [teachers, unavail, bookings] = await Promise.all([
@@ -92,19 +89,19 @@ async function findTeachers() {
 
   let avail = teachers.filter(t => {
     if (unavail.some(u =>
-      u.teacher_id === t.id &&
-      u.day_of_week === dow &&
-      !(end <= u.start_time || start >= u.end_time)
+      u.teacher_id===t.id &&
+      u.day_of_week===dow &&
+      !(end<=u.start_time||start>=u.end_time)
     )) return false;
     if (bookings.some(b =>
-      b.teacher_id === t.id &&
-      !(end <= b.start_time || start >= b.end_time)
+      b.teacher_id===t.id &&
+      !(end<=b.start_time||start>=b.end_time)
     )) return false;
     return true;
   });
 
-  if (TYPE.value === 'inperson') {
-    avail = avail.filter(t => t.location === LOC_SELECT.value);
+  if (TYPE.value==='inperson') {
+    avail = avail.filter(t=>t.location===LOC_SELECT.value);
   }
 
   if (!avail.length) {
@@ -112,26 +109,26 @@ async function findTeachers() {
     return;
   }
 
-  document.getElementById('available-heading').style.display = 'block';
-  RESULTS.innerHTML = avail
-    .map(t => `<button class="teacher-btn" data-id="${t.id}" data-name="${t.name}">${t.name}</button>`)
-    .join('');
+  document.getElementById('available-heading').style.display='block';
+  RESULTS.innerHTML = avail.map(t=>
+    `<button class="teacher-btn" data-id="${t.id}" data-name="${t.name}">${t.name}</button>`
+  ).join('');
 
-  document.querySelectorAll('.teacher-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.teacher-btn').forEach(b => b.classList.remove('selected'));
+  RESULTS.querySelectorAll('.teacher-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      RESULTS.querySelectorAll('.teacher-btn').forEach(b=>b.classList.remove('selected'));
       btn.classList.add('selected');
       selectedTeacher = { id:+btn.dataset.id, name:btn.dataset.name };
       TNAME.textContent = btn.dataset.name;
       FORM_WR.style.display = 'block';
-    });
+    };
   });
 }
 
-// Re-run on control changes
-TYPE.addEventListener('change', () => {
-  ZOOM_DIV.style.display = TYPE.value === 'zoom' ? 'block' : 'none';
-  INP_DIV.style.display  = TYPE.value === 'inperson' ? 'block' : 'none';
+// Show/hide controls per TYPE
+TYPE.addEventListener('change', ()=>{
+  ZOOM_DIV.style.display = TYPE.value==='zoom' ? 'block':'none';
+  INP_DIV.style.display  = TYPE.value==='inperson'?'block':'none';
   findTeachers();
 });
 DAY1.addEventListener('change', findTeachers);
@@ -140,49 +137,39 @@ DAY2.addEventListener('change', findTeachers);
 SLOT_SELECT.addEventListener('change', findTeachers);
 LOC_SELECT.addEventListener('change', findTeachers);
 
-// Booking form submission with double-check and error popup
-FORM.addEventListener('submit', async e => {
+// Close popup + reload
+CLOSE.onclick = ()=>window.location.reload();
+
+// Submit booking
+FORM.addEventListener('submit', async e=>{
   e.preventDefault();
-  // Build payload
+  const f=e.target;
   const payload = {
     teacher_id:       selectedTeacher.id,
     date:             selDate.toISOString().slice(0,10),
     start_time:       selStart,
     end_time:         selEnd,
-    parent_name:      FORM.parent_name.value,
-    parent_email:     FORM.parent_email.value,
-    student_name:     FORM.student_name.value,
-    school_name:      FORM.school_name.value,
+    parent_name:      f.parent_name.value,
+    parent_email:     f.parent_email.value,
+    student_name:     f.student_name.value,
+    school_name:      f.school_name.value,
     booking_type:     TYPE.value,
-    booking_location: TYPE.value === 'inperson' ? LOC_SELECT.value : 'Zoom'
+    booking_location: TYPE.value==='inperson'?LOC_SELECT.value:'Zoom'
   };
-
-  const res = await fetch('/api/bookings', {
-    method:  'POST',
-    headers: { 'Content-Type':'application/json' },
-    body:    JSON.stringify(payload)
+  const res = await fetch('/api/bookings',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
   });
-
-  if (res.status === 409) {
-    POPUP_MSG.textContent = 'Sorry, this booking was just taken, please start again';
-  } else if (!res.ok) {
-    POPUP_MSG.textContent = 'An Error Occured, Please reload';
-  } else {
-    POPUP_MSG.textContent = 'Booking created successfully!, <br>Ko Taku Reo will be in touch to confirm this booking';
-  }
-
-  POPUP.style.display   = 'flex';
-  FORM_WR.style.display = 'none';
-  RESULTS.innerHTML     = '';
+  POPUP.querySelector('p').textContent =
+    res.status===201 ? 'Booking created successfully!' : 'Sorry, the booking has already been taken';
+  POPUP.style.display='flex';
+  FORM_WR.style.display='none';
+  RESULTS.innerHTML='';
 });
 
-// Close popup and reload
-CLOSE.addEventListener('click', () => {
-  window.location.reload();
-});
-
-// Initialization
-(async function init() {
+// Init
+(async function(){
   populateTimes();
   await populateLocations();
   TYPE.dispatchEvent(new Event('change'));
