@@ -35,9 +35,9 @@
     <!-- Manage Teachers -->
     <h2 id="manage-teachers-heading">Manage Teachers</h2>
     <form id="add-teacher-form">
-      <input id="new-teacher-name" placeholder="Teacher Name" required>
-      <input id="new-teacher-location" placeholder="Location (e.g. Sumner)" required>
-      <button>Add Teacher</button>
+      <input id="new-teacher-name" type="text" placeholder="Teacher Name" required>
+      <input id="new-teacher-location" type="text" placeholder="Location (e.g. Sumner)" required>
+      <button><i class="fa-solid fa-plus"></i> Add</button>
     </form>
     <table>
       <thead>
@@ -51,19 +51,19 @@
     </table>
 
     <!-- Unavailability -->
-    <h2 id="unavail-heading">Set Unavailability</h2>
+    <h2 id="unavail-heading">Add Unavailability</h2>
     <label for="teacher-unavail">Teacher:</label>
     <select id="teacher-unavail"></select><br/>
-    <label>Day(s):</label><br/>
+    <label>Day(s):</label>
     <label><input type="checkbox" name="unavail-day" value="1"> Monday</label>
     <label><input type="checkbox" name="unavail-day" value="2"> Tuesday</label>
     <label><input type="checkbox" name="unavail-day" value="3"> Wednesday</label>
     <label><input type="checkbox" name="unavail-day" value="4"> Thursday</label>
-    <label><input type="checkbox" name="unavail-day" value="5"> Friday</label><br/>
+    <label><input type="checkbox" name="unavail-day" value="5"> Friday</label>
     <label for="start-unavail">Start Time:</label>
     <input type="time" id="start-unavail" value="08:30"/>
     <label for="end-unavail">End Time:</label>
-    <input type="time" id="end-unavail" value="12:00"/><br/>
+    <input type="time" id="end-unavail" value="12:00"/>
     <button id="add-unavail">Add Unavailability</button>
 
     <h2 id="existing-unavail-heading">Existing Unavailability</h2>
@@ -82,24 +82,12 @@
 <!-- Preferences -->
 <h2>Preferences</h2>
 <form id="preferences-form">
-  <label for="pref-classification">Staff Classification:</label>
-  <input type="text" id="pref-classification" required>
-
-  <label for="pref-primary-color">Primary Color:</label>
-  <input type="color" id="pref-primary-color" required>
-
-  <label for="pref-secondary-color">Secondary Color:</label>
-  <input type="color" id="pref-secondary-color" required>
-
-  <label for="pref-page-heading">Page Heading:</label>
-  <input type="text" id="pref-page-heading" required>
-
-  <label for="pref-zoom-duration">Zoom Duration (minutes):</label>
-  <input type="number" id="pref-zoom-duration" min="1" required>
-
-  <label for="pref-inperson-duration">In Person Duration (minutes):</label>
-  <input type="number" id="pref-inperson-duration" min="1" required>
-
+  <label for="pref-page-heading">Page Heading:</label> <input type="text" id="pref-page-heading" required>
+  <label for="pref-classification">Staff Classification:</label> <input type="text" id="pref-classification" required>
+  <br>
+  <label for="pref-primary-color">Primary Color:</label> <input type="color" id="pref-primary-color" required>
+  <label for="pref-secondary-color">Secondary Color:</label> <input type="color" id="pref-secondary-color" required>
+  <br>
   <label>
     <input type="checkbox" id="pref-show-zoom">
     Show Zoom Bookings in Admin
@@ -109,6 +97,9 @@
     <input type="checkbox" id="pref-show-inperson">
     Show In-Person Bookings in Admin
   </label>
+
+  <label for="pref-zoom-duration">Zoom Duration (minutes):</label> <input type="number" id="pref-zoom-duration" min="1" required>
+  <label for="pref-inperson-duration">In Person Duration (minutes):</label> <input type="number" id="pref-inperson-duration" min="1" required>
 
   <button type="submit">Save Preferences</button>
 </form>

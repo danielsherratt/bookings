@@ -121,7 +121,6 @@ function renderTeachers(teachers) {
   const tt = document.getElementById('teachers-table');
   tt.innerHTML = teachers.map(t => `
     <tr>
-      <td>${t.id}</td>
       <td>${t.name}</td>
       <td>${t.location || ''}</td>
       <td>
@@ -153,7 +152,6 @@ function renderUnavailability(unavail, teacherMap) {
   const dayNames = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday'};
   ut.innerHTML = unavail.map(u => `
     <tr>
-      <td>${u.id}</td>
       <td>${teacherMap[u.teacher_id] || u.teacher_name}</td>
       <td>${dayNames[u.day_of_week]}</td>
       <td>${u.start_time}–${u.end_time}</td>
@@ -192,7 +190,6 @@ function renderBookings(bookings, teacherMap, locationMap) {
     const loc  = type==='Zoom' ? 'Zoom' : (b.booking_location || locationMap[b.teacher_id]||'');
     return `
       <tr>
-        <td>${b.id}</td>
         <td>${teacherMap[b.teacher_id] || b.teacher_name}</td>
         <td>${day}</td>
         <td>${time}</td>
