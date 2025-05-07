@@ -12,7 +12,7 @@
 
     <!-- Logo -->
     <div class="logo">
-      <img src="assets/logo.png" alt="Your Logo">
+      <img src="/logo.png" alt="Your Logo">
     </div>
 
     <!-- Page Heading -->
@@ -39,7 +39,7 @@
       <select id="time"></select>
     </div>
 
-    <!-- In Person controls -->
+    <!-- In-Person controls -->
     <div id="inperson-controls" style="display:none;">
       <label for="day2">Day:</label>
       <select id="day2">
@@ -89,38 +89,34 @@
 
   <!-- Preferences loader -->
   <script>
-  document.addEventListener('DOMContentLoaded', async () => {
-    try {
-      const res = await fetch('/api/preferences');
-      if (!res.ok) return;
-      const p = await res.json();
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await fetch('/api/preferences');
+        if (!res.ok) return;
+        const p = await res.json();
 
-      // Apply colours
-      document.documentElement.style.setProperty('--primary-color',   p.primary_color);
-      document.documentElement.style.setProperty('--secondary-color', p.secondary_color);
+        // Apply color scheme
+        document.documentElement.style.setProperty('--primary-color',   p.primary_color);
+        document.documentElement.style.setProperty('--secondary-color', p.secondary_color);
 
-      // Set heading
-      document.getElementById('booking-header').textContent = p.page_heading;
+        // Set page heading
+        document.getElementById('booking-header').textContent = p.page_heading;
 
-      // Update booking-type labels
-      const zoomOpt = document.querySelector('#type option[value="zoom"]');
-      zoomOpt.textContent = `Zoom Session (${p.zoom_duration} min)`;
-      const inOpt = document.querySelector('#type option[value="inperson"]');
-      inOpt.textContent = `In Person (${p.inperson_duration % 60 === 0
-        ? (p.inperson_duration / 60) + 'h'
-        : p.inperson_duration + ' min'})`;
-    } catch (e) {
-      console.error('Could not load preferences', e);
-    }
+        // Update booking-type option labels
+        const zoomOpt = document.querySelector('#type option[value="zoom"]');
+        zoomOpt.textContent = `Zoom Session (${p.zoom_duration} min)`;
+        const inOpt = document.querySelector('#type option[value="inperson"]');
+        inOpt.textContent = `${p.staff_classification} (${p.inperson_duration % 60 === 0
+          ? (p.inperson_duration/60) + 'h'
+          : p.inperson_duration + ' min'})`;
 
-    if (!prefs.show_zoom) {
-  document.querySelector('#type option[value="zoom"]').remove();
-}
-if (!prefs.show_inperson) {
-  document.querySelector('#type option[value="inperson"]').remove();
-}
-
-  });
+        // Update Available heading
+        document.getElementById('available-heading').textContent =
+          `Available ${p.staff_classification}s`;
+      } catch (e) {
+        console.error('Could not load preferences', e);
+      }
+    });
   </script>
 
   <script src="js/booking.js"></script>
