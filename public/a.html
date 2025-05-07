@@ -14,40 +14,41 @@
     <h2>Preferences</h2>
     <form id="preferences-form">
       <label for="pref-classification">Staff Classification:</label>
-      <input type="text" id="pref-classification" required>
+      <input type="text"   id="pref-classification"      required>
 
       <label for="pref-primary-color">Primary Color:</label>
-      <input type="color" id="pref-primary-color" required>
+      <input type="color"  id="pref-primary-color"       required>
 
       <label for="pref-secondary-color">Secondary Color:</label>
-      <input type="color" id="pref-secondary-color" required>
+      <input type="color"  id="pref-secondary-color"     required>
 
       <label for="pref-page-heading">Page Heading:</label>
-      <input type="text" id="pref-page-heading" required>
+      <input type="text"   id="pref-page-heading"        required>
 
       <label for="pref-zoom-duration">Zoom Duration (minutes):</label>
-      <input type="number" id="pref-zoom-duration" min="1" required>
+      <input type="number" id="pref-zoom-duration"       min="1" required>
 
       <label for="pref-inperson-duration">In Person Duration (minutes):</label>
-      <input type="number" id="pref-inperson-duration" min="1" required>
-      <label for="pref-show-zoom">
-        <input type="checkbox" id="pref-show-zoom" name="show_zoom">
+      <input type="number" id="pref-inperson-duration"   min="1" required>
+
+      <label>
+        <input type="checkbox" id="pref-show-zoom">
         Show Zoom Bookings in Admin
       </label>
 
-      <label for="pref-show-inperson">
-        <input type="checkbox" id="pref-show-inperson" name="show_inperson">
+      <label>
+        <input type="checkbox" id="pref-show-inperson">
         Show In-Person Bookings in Admin
       </label>
 
       <button type="submit">Save Preferences</button>
     </form>
 
-    <!-- Teacher Management -->
+    <!-- Manage Teachers -->
     <h2 id="manage-teachers-heading">Manage Teachers</h2>
     <form id="add-teacher-form">
-      <input id="new-teacher-name" placeholder="Teacher Name" required>
-      <input id="new-teacher-location" placeholder="Location (e.g. Sumner)" required>
+      <input id="new-teacher-name"     placeholder="Teacher Name"                required>
+      <input id="new-teacher-location" placeholder="Location (e.g. Sumner)"       required>
       <button>Add Teacher</button>
     </form>
     <table>
@@ -62,7 +63,7 @@
       <tbody id="teachers-table"></tbody>
     </table>
 
-    <!-- Unavailability -->
+    <!-- Set Unavailability -->
     <h2 id="unavail-heading">Set Unavailability</h2>
     <label for="teacher-unavail">Teacher:</label>
     <select id="teacher-unavail"></select><br/>
@@ -75,7 +76,7 @@
     <label for="start-unavail">Start Time:</label>
     <input type="time" id="start-unavail" value="08:30"/>
     <label for="end-unavail">End Time:</label>
-    <input type="time" id="end-unavail" value="12:00"/><br/>
+    <input type="time" id="end-unavail"   value="12:00"/><br/>
     <button id="add-unavail">Add Unavailability</button>
 
     <h3 id="existing-unavail-heading">Existing Unavailability</h3>
@@ -92,7 +93,7 @@
       <tbody id="unavail-table"></tbody>
     </table>
 
-    <!-- Bookings -->
+    <!-- Existing Bookings -->
     <h2 id="existing-bookings-heading">Existing Bookings</h2>
     <button id="export-csv">Export Bookings CSV</button>
     <table>
@@ -113,10 +114,8 @@
       </thead>
       <tbody id="bookings-table"></tbody>
     </table>
-
   </div>
 
-  <!-- All logic in one script -->
   <script src="js/admin.js"></script>
 </body>
 </html>

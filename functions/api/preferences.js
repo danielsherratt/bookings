@@ -1,9 +1,6 @@
-// functions/api/preferences.js
-
 export async function onRequest({ request, env }) {
   const DB = env.DB;
 
-  // GET: return all preferences
   if (request.method === 'GET') {
     const { results } = await DB.prepare(`
       SELECT
@@ -18,14 +15,11 @@ export async function onRequest({ request, env }) {
       FROM Preferences
       WHERE id = 1
     `).all();
-
-    const p = results[0];
-    return new Response(JSON.stringify(p), {
+    return new Response(JSON.stringify(results[0]), {
       headers: { 'Content-Type': 'application/json' }
     });
   }
 
-  // POST: upsert all preferences
   if (request.method === 'POST') {
     const {
       staff_classification,
@@ -49,7 +43,7 @@ export async function onRequest({ request, env }) {
          inperson_duration,
          show_zoom,
          show_inperson)
-      VALUES (1,?,?,?,?,?,?,?,?,?)
+      VALUES (1,?,?,?,?,?,?,?,?)
       ON CONFLICT(id) DO UPDATE SET
         staff_classification = excluded.staff_classification,
         primary_color        = excluded.primary_color,
@@ -67,7 +61,7 @@ export async function onRequest({ request, env }) {
       page_heading,
       zoom_duration,
       inperson_duration,
-      show_zoom ? 1 : 0,
+      show_zoom   ? 1 : 0,
       show_inperson ? 1 : 0
     )
     .run();
