@@ -9,7 +9,7 @@
 </head>
 <body>
   <div class="container-admin">
-    <h1 id="admin-header">Booking Dashboard</h1>
+    <h1 id="admin-header">Admin Booking Dashboard</h1>
 
        <!-- Bookings -->
        <h2 id="existing-bookings-heading">Existing Bookings</h2>
@@ -53,17 +53,16 @@
     <!-- Unavailability -->
     <h2 id="unavail-heading">Add Unavailability</h2>
     <label for="teacher-unavail">Teacher:</label>
-    <select id="teacher-unavail"></select><br/>
+    <select id="teacher-unavail"></select>
     <label>Day(s):</label>
     <label><input type="checkbox" name="unavail-day" value="1"> Monday</label>
     <label><input type="checkbox" name="unavail-day" value="2"> Tuesday</label>
     <label><input type="checkbox" name="unavail-day" value="3"> Wednesday</label>
     <label><input type="checkbox" name="unavail-day" value="4"> Thursday</label>
     <label><input type="checkbox" name="unavail-day" value="5"> Friday</label>
-    <label for="start-unavail">Start Time:</label>
-    <input type="time" id="start-unavail" value="08:30"/>
-    <label for="end-unavail">End Time:</label>
-    <input type="time" id="end-unavail" value="12:00"/>
+    <label for="start-unavail">Start Time:</label> <input type="time" id="start-unavail" value="08:30"/>
+    <label for="end-unavail">End Time:</label> <input type="time" id="end-unavail" value="12:00"/>
+    <br>
     <button id="add-unavail">Add Unavailability</button>
 
     <h2 id="existing-unavail-heading">Existing Unavailability</h2>
@@ -100,7 +99,7 @@
 
   <label for="pref-zoom-duration">Zoom Duration (minutes):</label> <input type="number" id="pref-zoom-duration" min="1" required>
   <label for="pref-inperson-duration">In Person Duration (minutes):</label> <input type="number" id="pref-inperson-duration" min="1" required>
-
+<br>
   <button type="submit">Save Preferences</button>
 </form>
 
