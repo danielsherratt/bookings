@@ -114,7 +114,7 @@ function renderUnavailability(unavail, teacherMap) {
 function renderBookings(bookings, teacherMap, locationMap) {
   const bt = document.getElementById('bookings-table');
   if (!bookings.length) {
-    bt.innerHTML = '<tr><td colspan="11">No bookings</td></tr>';
+    bt.innerHTML = '<tr><td colspan="11">No Bookings <i class="fa-solid fa-face-sad-tear"></i></td></tr>';
     return;
   }
   const weekdayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
