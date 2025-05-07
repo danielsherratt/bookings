@@ -1,11 +1,11 @@
 // public/js/admin.js
 
-// Preference flags
+// Flags for filtering bookings
 let prefShowZoom = true;
 let prefShowInperson = true;
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // 1) Load & apply preferences (including show/hide flags)
+  // 1) Load & apply preferences (including show/hide and classification)
   await loadPreferences();
 
   // 2) Wire up Preferences form
@@ -26,11 +26,11 @@ async function loadPreferences() {
     if (!res.ok) return;
     const p = await res.json();
 
-    // Apply CSS variables
+    // Apply colour scheme
     document.documentElement.style.setProperty('--primary-color',   p.primary_color);
     document.documentElement.style.setProperty('--secondary-color', p.secondary_color);
 
-    // Populate the form fields
+    // Populate the Preferences form fields
     document.getElementById('pref-classification').value    = p.staff_classification;
     document.getElementById('pref-primary-color').value     = p.primary_color;
     document.getElementById('pref-secondary-color').value   = p.secondary_color;
@@ -38,30 +38,35 @@ async function loadPreferences() {
     document.getElementById('pref-zoom-duration').value     = p.zoom_duration;
     document.getElementById('pref-inperson-duration').value = p.inperson_duration;
 
-    // Set the show/hide checkboxes
-    prefShowZoom = !!p.show_zoom;
-    prefShowInperson = !!p.show_inperson;
+    // Show/hide flags
+    prefShowZoom      = !!p.show_zoom;
+    prefShowInperson  = !!p.show_inperson;
     document.getElementById('pref-show-zoom').checked      = prefShowZoom;
-    document.getElementById('pref-show-inperson').checked = prefShowInperson;
+    document.getElementById('pref-show-inperson').checked  = prefShowInperson;
 
-    // Update headings & labels
+    // Update headings & labels with classification
+    const cls = p.staff_classification;
     document.getElementById('manage-teachers-heading')
-            .textContent = `Manage ${p.staff_classification}s`;
+            .textContent = `Manage ${cls}s`;
     document.getElementById('unavail-heading')
-            .textContent = `Set ${p.staff_classification} Unavailability`;
+            .textContent = `Set ${cls} Unavailability`;
     document.getElementById('existing-unavail-heading')
-            .textContent = `Existing ${p.staff_classification} Unavailability`;
+            .textContent = `Existing ${cls} Unavailability`;
     document.getElementById('existing-bookings-heading')
             .textContent = `Existing Bookings`;
     document.getElementById('new-teacher-name')
-            .placeholder = `${p.staff_classification} Name`;
+            .placeholder = `${cls} Name`;
     document.querySelector('label[for="teacher-unavail"]')
-            .textContent = `${p.staff_classification}:`;
+            .textContent = `${cls}:`;
+
+    // Update table headers for the three tables
+    document.getElementById('th-manage-teacher').textContent  = cls;
+    document.getElementById('th-unavail-teacher').textContent = cls;
+    document.getElementById('th-bookings-teacher').textContent= cls;
+
   } catch (e) {
     console.error('Could not load preferences', e);
   }
-
-
 }
 
 async function savePreferences(e) {
@@ -75,15 +80,14 @@ async function savePreferences(e) {
     inperson_duration:    parseInt(document.getElementById('pref-inperson-duration').value, 10),
     show_zoom:            document.getElementById('pref-show-zoom').checked ? 1 : 0,
     show_inperson:        document.getElementById('pref-show-inperson').checked ? 1 : 0
-
   };
   await fetch('/api/preferences', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(payload)
+    method: 'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify(payload)
   });
   alert('Preferences saved.');
-  // Re-load prefs and refresh table
+  // Re-apply preferences and refresh data
   await loadPreferences();
   reloadAdmin();
 }
@@ -123,9 +127,9 @@ function renderTeachers(teachers) {
     btn.onclick = async () => {
       if (!confirm('Delete this teacher and all related data?')) return;
       await fetch('/api/teachers', {
-        method:  'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ id: +btn.dataset.id })
+        method: 'DELETE',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ id:+btn.dataset.id })
       });
       reloadAdmin();
     };
@@ -149,9 +153,9 @@ function renderUnavailability(unavail, teacherMap) {
   document.querySelectorAll('.delete-unavail-btn').forEach(btn => {
     btn.onclick = async () => {
       await fetch('/api/unavailability', {
-        method:  'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ id: +btn.dataset.id })
+        method:'DELETE',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ id:+btn.dataset.id })
       });
       reloadAdmin();
     };
@@ -160,32 +164,25 @@ function renderUnavailability(unavail, teacherMap) {
 
 function renderBookings(bookings, teacherMap, locationMap) {
   const bt = document.getElementById('bookings-table');
-
-  // Filter by show/hide preferences
-  const filtered = bookings.filter(b => {
-    return b.booking_type === 'zoom'
-      ? prefShowZoom
-      : prefShowInperson;
-  });
-
+  // Apply show/hide filters
+  const filtered = bookings.filter(b => 
+    b.booking_type === 'zoom' ? prefShowZoom : prefShowInperson
+  );
   if (!filtered.length) {
     bt.innerHTML = '<tr><td colspan="11">No bookings</td></tr>';
     return;
   }
-
   const weekdayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   bt.innerHTML = filtered.map(b => {
-    const dayName = weekdayNames[new Date(b.booking_date).getUTCDay()];
-    const time    = `${b.start_time}–${b.end_time}`;
-    const type    = b.booking_type === 'zoom' ? 'Zoom' : 'In Person';
-    const loc     = type === 'Zoom'
-      ? 'Zoom'
-      : (b.booking_location || locationMap[b.teacher_id] || '');
+    const day  = weekdayNames[new Date(b.booking_date).getUTCDay()];
+    const time = `${b.start_time}–${b.end_time}`;
+    const type = b.booking_type === 'zoom' ? 'Zoom' : 'In Person';
+    const loc  = type==='Zoom' ? 'Zoom' : (b.booking_location || locationMap[b.teacher_id]||'');
     return `
       <tr>
         <td>${b.id}</td>
         <td>${teacherMap[b.teacher_id] || b.teacher_name}</td>
-        <td>${dayName}</td>
+        <td>${day}</td>
         <td>${time}</td>
         <td>${type}</td>
         <td>${loc}</td>
@@ -203,9 +200,9 @@ function renderBookings(bookings, teacherMap, locationMap) {
     btn.onclick = async () => {
       if (!confirm('Delete this booking?')) return;
       await fetch('/api/bookings', {
-        method:  'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ id: +btn.dataset.id })
+        method:'DELETE',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ id:+btn.dataset.id })
       });
       reloadAdmin();
     };
@@ -218,9 +215,9 @@ async function addTeacher(e) {
   const location = document.getElementById('new-teacher-location').value.trim();
   if (!name || !location) return alert('Provide both name and location.');
   await fetch('/api/teachers', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ name, location })
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify({ name, location })
   });
   e.target.reset();
   reloadAdmin();
@@ -228,17 +225,16 @@ async function addTeacher(e) {
 
 async function addUnavailability() {
   const teacher_id = +document.getElementById('teacher-unavail').value;
-  const days = Array.from(
-    document.querySelectorAll('input[name="unavail-day"]:checked')
-  ).map(cb => +cb.value);
+  const days = Array.from(document.querySelectorAll('input[name="unavail-day"]:checked'))
+                    .map(cb => +cb.value);
   const start_time = document.getElementById('start-unavail').value;
   const end_time   = document.getElementById('end-unavail').value;
   if (!days.length) return alert('Select at least one day.');
   await Promise.all(days.map(day =>
     fetch('/api/unavailability', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ teacher_id, day_of_week: day, start_time, end_time })
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ teacher_id, day_of_week:day, start_time, end_time })
     })
   ));
   reloadAdmin();
@@ -246,23 +242,21 @@ async function addUnavailability() {
 
 async function exportBookingsCSV() {
   const [bookings, teachers] = await Promise.all([
-    fetch('/api/bookings').then(r => r.json()),
-    fetch('/api/teachers').then(r => r.json())
+    fetch('/api/bookings').then(r=>r.json()),
+    fetch('/api/teachers').then(r=>r.json())
   ]);
   if (!bookings.length) return alert('No bookings to export.');
-
-  const teacherMap  = Object.fromEntries(teachers.map(t => [t.id, t.name]));
+  const teacherMap = Object.fromEntries(teachers.map(t=>[t.id,t.name]));
   const weekdayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const headers     = ['ID','Teacher','Day','Start Time','End Time','Type','Location','Parent','Email','Student','School'];
-
+  const headers = ['ID','Teacher','Day','Start Time','End Time','Type','Location','Parent','Email','Student','School'];
   const rows = bookings.map(b => {
-    const dayName = weekdayNames[new Date(b.booking_date).getUTCDay()];
-    const type    = b.booking_type === 'zoom' ? 'Zoom' : 'In Person';
-    const loc     = type === 'Zoom' ? 'Zoom' : (b.booking_location || '');
+    const day = weekdayNames[new Date(b.booking_date).getUTCDay()];
+    const type = b.booking_type==='zoom'?'Zoom':'In Person';
+    const loc  = type==='Zoom'?'Zoom':(b.booking_location||'');
     return [
       b.id,
-      teacherMap[b.teacher_id] || b.teacher_name,
-      dayName,
+      teacherMap[b.teacher_id]||b.teacher_name,
+      day,
       b.start_time,
       b.end_time,
       type,
@@ -273,15 +267,13 @@ async function exportBookingsCSV() {
       b.school_name
     ];
   });
-
   const csv = [headers, ...rows].map(r =>
-    r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')
+    r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')
   ).join('\n');
-
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
   a.download = `bookings_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
