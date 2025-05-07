@@ -112,6 +112,12 @@ async function reloadAdmin() {
 }
 
 function renderTeachers(teachers) {
+  const nt = document.getElementById('teachers-table');
+  // If no Staff, show a single row with "No Staff"
+  if (!teachers.length) {
+    nt.innerHTML = '<tr><td colspan="11">No one works here yet <i class="fa-solid fa-face-sad-tear"></i></td></tr>';
+    return;
+  }
   const tt = document.getElementById('teachers-table');
   tt.innerHTML = teachers.map(t => `
     <tr>
@@ -119,7 +125,7 @@ function renderTeachers(teachers) {
       <td>${t.name}</td>
       <td>${t.location || ''}</td>
       <td>
-        <button class="delete-teacher-btn" data-id="${t.id}">Delete</button>
+        <button class="delete-teacher-btn" data-id="${t.id}"><i class="fa-solid fa-trash"></i></button>
       </td>
     </tr>
   `).join('');
@@ -137,6 +143,12 @@ function renderTeachers(teachers) {
 }
 
 function renderUnavailability(unavail, teacherMap) {
+  const uv = document.getElementById('unavail-table');
+  // If no unavailablity set, show a single row with "Everyones working"
+  if (!unavail.length) {
+    uv.innerHTML = '<tr><td colspan="11">Everyones Working! <i class="fa-solid fa-thumbs-up"></i></td></tr>';
+    return;
+  }
   const ut = document.getElementById('unavail-table');
   const dayNames = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday'};
   ut.innerHTML = unavail.map(u => `
@@ -146,7 +158,7 @@ function renderUnavailability(unavail, teacherMap) {
       <td>${dayNames[u.day_of_week]}</td>
       <td>${u.start_time}–${u.end_time}</td>
       <td>
-        <button class="delete-unavail-btn" data-id="${u.id}">Delete</button>
+        <button class="delete-unavail-btn" data-id="${u.id}"><i class="fa-solid fa-trash"></i></button>
       </td>
     </tr>
   `).join('');
@@ -169,7 +181,7 @@ function renderBookings(bookings, teacherMap, locationMap) {
     b.booking_type === 'zoom' ? prefShowZoom : prefShowInperson
   );
   if (!filtered.length) {
-    bt.innerHTML = '<tr><td colspan="11">No bookings</td></tr>';
+    bt.innerHTML = '<tr><td colspan="11">No Bookings <i class="fa-solid fa-face-sad-tear"></i></td></tr>';
     return;
   }
   const weekdayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -187,11 +199,11 @@ function renderBookings(bookings, teacherMap, locationMap) {
         <td>${type}</td>
         <td>${loc}</td>
         <td>${b.parent_name}</td>
-        <td>${b.parent_email}</td>
+  <td><a href="mailto:${b.parent_email}">${b.parent_email}</a>/td>
         <td>${b.student_name}</td>
         <td>${b.school_name}</td>
         <td>
-          <button class="delete-booking-btn" data-id="${b.id}">Delete</button>
+          <button class="delete-booking-btn" data-id="${b.id}"><i class="fa-solid fa-trash"></i></button>
         </td>
       </tr>
     `;
