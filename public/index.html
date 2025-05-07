@@ -112,6 +112,14 @@
     } catch (e) {
       console.error('Could not load preferences', e);
     }
+
+    if (!prefs.show_zoom) {
+  document.querySelector('#type option[value="zoom"]').remove();
+}
+if (!prefs.show_inperson) {
+  document.querySelector('#type option[value="inperson"]').remove();
+}
+
   });
   </script>
 

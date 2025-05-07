@@ -1,7 +1,11 @@
 // public/js/admin.js
 
+// Preference flags
+let prefShowZoom = true;
+let prefShowInperson = true;
+
 document.addEventListener('DOMContentLoaded', async () => {
-  // 1) Load & apply preferences
+  // 1) Load & apply preferences (including show/hide flags)
   await loadPreferences();
 
   // 2) Wire up Preferences form
@@ -34,6 +38,12 @@ async function loadPreferences() {
     document.getElementById('pref-zoom-duration').value     = p.zoom_duration;
     document.getElementById('pref-inperson-duration').value = p.inperson_duration;
 
+    // Set the show/hide checkboxes
+    prefShowZoom = !!p.show_zoom;
+    prefShowInperson = !!p.show_inperson;
+    document.getElementById('pref-show-zoom').checked      = prefShowZoom;
+    document.getElementById('pref-show-inperson').checked = prefShowInperson;
+
     // Update headings & labels
     document.getElementById('manage-teachers-heading')
             .textContent = `Manage ${p.staff_classification}s`;
@@ -50,6 +60,8 @@ async function loadPreferences() {
   } catch (e) {
     console.error('Could not load preferences', e);
   }
+
+
 }
 
 async function savePreferences(e) {
@@ -60,7 +72,10 @@ async function savePreferences(e) {
     secondary_color:      document.getElementById('pref-secondary-color').value,
     page_heading:         document.getElementById('pref-page-heading').value.trim(),
     zoom_duration:        parseInt(document.getElementById('pref-zoom-duration').value, 10),
-    inperson_duration:    parseInt(document.getElementById('pref-inperson-duration').value, 10)
+    inperson_duration:    parseInt(document.getElementById('pref-inperson-duration').value, 10),
+    show_zoom:            document.getElementById('pref-show-zoom').checked ? 1 : 0,
+    show_inperson:        document.getElementById('pref-show-inperson').checked ? 1 : 0
+
   };
   await fetch('/api/preferences', {
     method:  'POST',
@@ -68,6 +83,9 @@ async function savePreferences(e) {
     body:    JSON.stringify(payload)
   });
   alert('Preferences saved.');
+  // Re-load prefs and refresh table
+  await loadPreferences();
+  reloadAdmin();
 }
 
 async function reloadAdmin() {
@@ -142,12 +160,21 @@ function renderUnavailability(unavail, teacherMap) {
 
 function renderBookings(bookings, teacherMap, locationMap) {
   const bt = document.getElementById('bookings-table');
-  if (!bookings.length) {
+
+  // Filter by show/hide preferences
+  const filtered = bookings.filter(b => {
+    return b.booking_type === 'zoom'
+      ? prefShowZoom
+      : prefShowInperson;
+  });
+
+  if (!filtered.length) {
     bt.innerHTML = '<tr><td colspan="11">No bookings</td></tr>';
     return;
   }
+
   const weekdayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  bt.innerHTML = bookings.map(b => {
+  bt.innerHTML = filtered.map(b => {
     const dayName = weekdayNames[new Date(b.booking_date).getUTCDay()];
     const time    = `${b.start_time}–${b.end_time}`;
     const type    = b.booking_type === 'zoom' ? 'Zoom' : 'In Person';
