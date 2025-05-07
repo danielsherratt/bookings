@@ -113,19 +113,30 @@
 
 
 
-  <!-- Preferences Section -->
-  <h2>Preferences</h2>
-  <form id="preferences-form">
-    <label for="pref-classification">Staff Classification:</label>
-    <input type="text" id="pref-classification" required>
-    <label for="pref-primary-color">Primary Color:</label>
-    <input type="color" id="pref-primary-color" required>
-    <label for="pref-secondary-color">Secondary Color:</label>
-    <input type="color" id="pref-secondary-color" required>
-    <br>
-    <button type="submit">Save Preferences</button>
-  </form>
-  </div>
+    <!-- Preferences -->
+    <h2>Preferences</h2>
+    <form id="preferences-form">
+      <label for="pref-classification">Staff Classification:</label>
+      <input type="text" id="pref-classification" required>
+
+      <label for="pref-primary-color">Primary Color:</label>
+      <input type="color" id="pref-primary-color" required>
+
+      <label for="pref-secondary-color">Secondary Color:</label>
+      <input type="color" id="pref-secondary-color" required>
+
+      <label for="pref-page-heading">Page Heading:</label>
+      <input type="text" id="pref-page-heading" required>
+
+      <label for="pref-zoom-duration">Zoom Duration (minutes):</label>
+      <input type="number" id="pref-zoom-duration" min="1" required>
+
+      <label for="pref-inperson-duration">In Person Duration (minutes):</label>
+      <input type="number" id="pref-inperson-duration" min="1" required>
+
+      <button type="submit">Save Preferences</button>
+    </form>
+</div>
   <script src="js/admin.js"></script>
 </body>
 </html>

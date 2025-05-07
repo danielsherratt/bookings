@@ -4,35 +4,8 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-  <link href="css/styles.css" rel="stylesheet"/>
-  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
-  <title>Bookings Dashboard</title>
-
-  <script>
-  (async function() {
-    try {
-      const res = await fetch('/api/preferences');
-      if (!res.ok) return;
-      const { staff_classification, primary_color, secondary_color } = await res.json();
-
-      // 1) Apply colours
-      document.documentElement.style.setProperty('--primary-color', primary_color);
-      document.documentElement.style.setProperty('--secondary-color', secondary_color);
-
-      // 2) Update main heading
-      const header = document.getElementById('booking-header');
-      if (header) header.textContent = `Book a ${staff_classification}`;
-
-      // 4) Update Available heading
-      const availHeading = document.getElementById('available-heading');
-      if (availHeading) {
-        availHeading.textContent = `Available ${staff_classification}s`;
-      }
-    } catch (e) {
-      console.error('Could not load preferences', e);
-    }
-  })();
-  </script>
+  <link rel="stylesheet" href="css/styles.css"/>
+  <title>Booking</title>
 </head>
 <body>
   <div class="container">
@@ -42,13 +15,13 @@
       <img src="assets/logo.png" alt="Your Logo">
     </div>
 
-    <!-- Dynamic heading -->
+    <!-- Page Heading -->
     <h1 id="booking-header">Book a Teacher</h1>
 
     <label for="type">Booking Type:</label>
     <select id="type">
       <option value="zoom">Zoom Session (30m)</option>
-      <!-- <option value="inperson">In Person (4h)</option> -->
+      <option value="inperson">Teacher (4h)</option>
     </select>
 
     <!-- Zoom controls -->
@@ -66,7 +39,7 @@
       <select id="time"></select>
     </div>
 
-    <!-- In-Person controls -->
+    <!-- In Person controls -->
     <div id="inperson-controls" style="display:none;">
       <label for="day2">Day:</label>
       <select id="day2">
@@ -87,7 +60,8 @@
       <select id="location-select"></select>
     </div>
 
-    <!-- This text is now dynamic -->
+    <button id="find">Find Available Teachers</button>
+
     <h2 id="available-heading" style="display:none;">Available Teachers</h2>
     <div id="results"></div>
 
@@ -112,6 +86,34 @@
     </div>
 
   </div>
+
+  <!-- Preferences loader -->
+  <script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const res = await fetch('/api/preferences');
+      if (!res.ok) return;
+      const p = await res.json();
+
+      // Apply colours
+      document.documentElement.style.setProperty('--primary-color',   p.primary_color);
+      document.documentElement.style.setProperty('--secondary-color', p.secondary_color);
+
+      // Set heading
+      document.getElementById('booking-header').textContent = p.page_heading;
+
+      // Update booking-type labels
+      const zoomOpt = document.querySelector('#type option[value="zoom"]');
+      zoomOpt.textContent = `Zoom Session (${p.zoom_duration} min)`;
+      const inOpt = document.querySelector('#type option[value="inperson"]');
+      inOpt.textContent = `${p.staff_classification} (${p.inperson_duration % 60 === 0
+        ? (p.inperson_duration / 60) + 'h'
+        : p.inperson_duration + ' min'})`;
+    } catch (e) {
+      console.error('Could not load preferences', e);
+    }
+  });
+  </script>
 
   <script src="js/booking.js"></script>
 </body>
