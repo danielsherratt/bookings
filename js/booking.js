@@ -161,8 +161,8 @@ FORM.onsubmit = async e=>{
   });
   POPUP.querySelector('p').textContent=
     res.status===201
-      ? 'Booking created successfully!'
-      : 'Sorry, the booking has already been taken';
+      ? 'Booking created successfully! We`ll be in touch to confirm soon'
+      : 'Sorry, the booking was just taken';
   POPUP.style.display='flex';
   FORM_WR.style.display='none';
   RESULTS.innerHTML='';
