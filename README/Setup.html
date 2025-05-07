@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>How Do I: Booking System Setup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0; padding: 2rem;
+      font-family: 'Work Sans', sans-serif;
+      background: #f9f9f9;
+      color: #003541;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      color: #00625f;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.5rem; border-bottom: 2px solid #6bbaae; padding-bottom: 0.3rem; }
+    p {
+      margin-bottom: 1rem;
+    }
+    pre {
+      background: #eef6f5;
+      padding: 1rem;
+      overflow-x: auto;
+      border-left: 4px solid #72a546;
+    }
+    code {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 0.9rem;
+      color: #003541;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>How Do I: Set Up the Teacher Booking System?</h1>
+
+    <section id="cloudflare-account">
+      <h2>1. Setting Up a Cloudflare Account</h2>
+      <p>
+        <!-- Fill in your instructions here -->
+      </p>
+    </section>
+
+    <section id="create-worker">
+      <h2>2. Creating a Worker</h2>
+      <p>
+        <!-- Fill in your instructions here -->
+      </p>
+    </section>
+
+    <section id="upload-zip">
+      <h2>3. Uploading a ZIP and Deploying</h2>
+      <p>
+        <!-- Fill in your instructions here -->
+      </p>
+    </section>
+
+    <section id="sql-code">
+      <h2>4. SQL Code</h2>
+      <p>Run the following in the D1 Query Editor to create your schema and seed defaults:</p>
+      <pre><code>-- 1) Teachers table
+CREATE TABLE IF NOT EXISTS Teachers (
+  id       INTEGER PRIMARY KEY AUTOINCREMENT,
+  name     TEXT    NOT NULL,
+  location TEXT
+);
+
+-- 2) Teacher unavailability
+CREATE TABLE IF NOT EXISTS TeacherUnavailability (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  teacher_id   INTEGER NOT NULL REFERENCES Teachers(id),
+  day_of_week  INTEGER NOT NULL,
+  start_time   TEXT    NOT NULL,
+  end_time     TEXT    NOT NULL
+);
+
+-- 3) Bookings
+CREATE TABLE IF NOT EXISTS Bookings (
+  id               INTEGER PRIMARY KEY AUTOINCREMENT,
+  teacher_id       INTEGER NOT NULL REFERENCES Teachers(id),
+  booking_date     TEXT    NOT NULL,
+  start_time       TEXT    NOT NULL,
+  end_time         TEXT    NOT NULL,
+  parent_name      TEXT    NOT NULL,
+  parent_email     TEXT    NOT NULL,
+  student_name     TEXT    NOT NULL,
+  school_name      TEXT    NOT NULL,
+  booking_type     TEXT    NOT NULL,
+  booking_location TEXT
+);
+
+-- 4) Prevent duplicates
+DELETE FROM Bookings
+WHERE rowid NOT IN (
+  SELECT MIN(rowid)
+  FROM Bookings
+  GROUP BY teacher_id, booking_date, start_time, end_time
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_booking_unique
+  ON Bookings (teacher_id, booking_date, start_time, end_time);
+
+-- 5) Preferences table
+CREATE TABLE IF NOT EXISTS Preferences (
+  id                   INTEGER PRIMARY KEY,
+  staff_classification TEXT    NOT NULL DEFAULT 'Teacher',
+  primary_color        TEXT    NOT NULL DEFAULT '#00625f',
+  secondary_color      TEXT    NOT NULL DEFAULT '#6bbaae',
+  page_heading         TEXT    NOT NULL DEFAULT 'Book a Teacher',
+  zoom_duration        INTEGER NOT NULL DEFAULT 30,
+  inperson_duration    INTEGER NOT NULL DEFAULT 240,
+  show_zoom            INTEGER NOT NULL DEFAULT 1,
+  show_inperson        INTEGER NOT NULL DEFAULT 1
+);
+
+INSERT OR IGNORE INTO Preferences(
+  id, staff_classification, primary_color, secondary_color,
+  page_heading, zoom_duration, inperson_duration,
+  show_zoom, show_inperson
+) VALUES (
+  1, 'Teacher', '#00625f', '#6bbaae',
+  'Book a Teacher', 30, 240,
+  1, 1
+);
+
+-- 6) Demo teachers
+INSERT OR IGNORE INTO Teachers (name, location) VALUES
+  ('Alice Smith', 'Sumner'),
+  ('Bob Jones',   'Kelston'),
+  ('Carol Lee',   'Wanaka');</code></pre>
+    </section>
+  </div>
+</body>
+</html>
