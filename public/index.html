@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css"/>
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="css/styles.css"/>
   <title>Booking</title>
 </head>
 <body>
@@ -60,7 +59,7 @@
       <label for="location-select">Location:</label>
       <select id="location-select"></select>
     </div>
-    
+
     <h2 id="available-heading" style="display:none;">Available Teachers</h2>
     <div id="results"></div>
 
@@ -86,44 +85,53 @@
 
   </div>
 
-  <!-- Preferences loader & show/hide logic -->
+  <!-- Preferences loader & dynamic adjustments -->
   <script>
-  document.addEventListener('DOMContentLoaded', async () => {
-    try {
-      const res = await fetch('/api/preferences');
-      if (!res.ok) return;
-      const p = await res.json();
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await fetch('/api/preferences');
+        if (!res.ok) return;
+        const p = await res.json();
 
-      // 1) Apply colors & labels
-      document.documentElement.style.setProperty('--primary-color',   p.primary_color);
-      document.documentElement.style.setProperty('--secondary-color', p.secondary_color);
-      document.getElementById('booking-header').textContent = p.page_heading;
-      document.getElementById('available-heading').textContent = `Available ${p.staff_classification}s`;
+        // 1) Apply color scheme
+        document.documentElement.style.setProperty('--primary-color',   p.primary_color);
+        document.documentElement.style.setProperty('--secondary-color', p.secondary_color);
 
-      // 2) Update the two option labels
-      const zoomOpt = document.querySelector('#type option[value="zoom"]');
-      if (zoomOpt) zoomOpt.textContent = `Zoom Session (${p.zoom_duration} min)`;
-      const inOpt = document.querySelector('#type option[value="inperson"]');
-      if (inOpt) inOpt.textContent = `${p.staff_classification} (${p.inperson_duration % 60 === 0
-        ? (p.inperson_duration/60) + 'h'
-        : p.inperson_duration + ' min'})`;
+        // 2) Set page heading & document title
+        document.getElementById('booking-header').textContent = p.page_heading;
+        document.title = p.page_heading;
 
-      // 3) Show/hide options
-      if (!p.show_zoom && zoomOpt) {
-        zoomOpt.remove();
-        document.getElementById('zoom-controls').style.display = 'none';
+        // 3) Update Available heading
+        document.getElementById('available-heading').textContent =
+          `Available ${p.staff_classification}s`;
+
+        // 4) Update booking-type option labels
+        const zoomOpt = document.querySelector('#type option[value="zoom"]');
+        if (zoomOpt) zoomOpt.textContent = `Zoom Session (${p.zoom_duration} min)`;
+
+        const inOpt = document.querySelector('#type option[value="inperson"]');
+        if (inOpt) inOpt.textContent = `${p.staff_classification} (${
+          p.inperson_duration % 60 === 0
+            ? (p.inperson_duration/60) + 'h'
+            : p.inperson_duration + ' min'
+        })`;
+
+        // 5) Show/hide options
+        if (!p.show_zoom && zoomOpt) {
+          zoomOpt.remove();
+          document.getElementById('zoom-controls').style.display = 'none';
+        }
+        if (!p.show_inperson && inOpt) {
+          inOpt.remove();
+          document.getElementById('inperson-controls').style.display = 'none';
+        }
+
+        // 6) Re-trigger type change to apply hide/show
+        document.getElementById('type').dispatchEvent(new Event('change'));
+      } catch (e) {
+        console.error('Could not load preferences', e);
       }
-      if (!p.show_inperson && inOpt) {
-        inOpt.remove();
-        document.getElementById('inperson-controls').style.display = 'none';
-      }
-
-      // 4) Force re-evaluate controls after options removed
-      document.getElementById('type').dispatchEvent(new Event('change'));
-    } catch (e) {
-      console.error('Could not load preferences', e);
-    }
-  });
+    });
   </script>
 
   <script src="js/booking.js"></script>
