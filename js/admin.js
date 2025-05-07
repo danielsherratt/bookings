@@ -49,7 +49,7 @@ async function loadPreferences() {
     document.getElementById('manage-teachers-heading')
             .textContent = `Manage ${cls}s`;
     document.getElementById('unavail-heading')
-            .textContent = `Set ${cls} Unavailability`;
+            .textContent = `Add ${cls} Unavailability`;
     document.getElementById('existing-unavail-heading')
             .textContent = `Existing ${cls} Unavailability`;
     document.getElementById('existing-bookings-heading')
