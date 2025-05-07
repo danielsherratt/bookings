@@ -33,12 +33,6 @@
         document.querySelector('label[for="teacher-unavail"]')
           .textContent = `${staff_classification}:`;
 
-          document.querySelector('th[for="staff-class"]')
-          .textContent = `${staff_classification}:`;
-
-          document.getElementById('staff-class-btn')
-          .textContent = `${staff_classification}:`;
-
       } catch (e) {
         console.error('Could not load preferences', e);
       }
@@ -55,7 +49,7 @@
       <table>
         <thead>
           <tr>
-            <th id="staff-class">Teacher</th>
+            <th>Teacher</th>
             <th>Day</th>
             <th>Time</th>
             <th>Type</th>
@@ -75,12 +69,12 @@
     <form id="add-teacher-form">
       <input id="new-teacher-name" type="text" placeholder="Teacher Name" required>
       <input id="new-teacher-location" type="text" placeholder="Location (e.g. Sumner)" required>
-      <button id="staff-class-btn">Add Teacher</button>
+      <button>Add Teacher</button>
     </form>
     <table>
       <thead>
         <tr>
-          <th id="staff-class">Teacher</th>
+          <th>Teacher</th>
           <th>Location</th>
           <th>Action</th>
         </tr>
@@ -108,7 +102,7 @@
     <table>
       <thead>
         <tr>
-          <th id="staff-class">Teacher</th>
+          <th>Teacher</th>
           <th>Day</th>
           <th>Time</th>
           <th>Action</th>
