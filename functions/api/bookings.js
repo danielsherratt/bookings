@@ -1,203 +1,143 @@
-// public/js/booking.js
+// functions/api/bookings.js
 
-const TYPE          = document.getElementById('type');
-const ZOOM_DIV      = document.getElementById('zoom-controls');
-const INP_DIV       = document.getElementById('inperson-controls');
-const DAY1          = document.getElementById('day');
-const TIME          = document.getElementById('time');
-const DAY2          = document.getElementById('day2');
-const SLOT_SELECT   = document.getElementById('slot-select');
-const LOC_SELECT    = document.getElementById('location-select');
-const FIND          = document.getElementById('find');
-const RESULTS       = document.getElementById('results');
-const FORM_WR       = document.getElementById('booking-form');
-const TNAME         = document.getElementById('teacher-name');
-const POPUP         = document.getElementById('confirmation-popup');
-const CLOSE         = POPUP.querySelector('.close-btn');
-const FORM          = document.getElementById('form');
+export async function onRequest(context) {
+  const { request, env } = context;
+  const DB = env.DB;
 
-let selectedTeacher, selDate, selStart, selEnd;
-
-// Utility: pad two digits
-function pad(n) { return String(n).padStart(2,'0'); }
-
-// Convert "HH:MM" → "h:MM AM/PM"
-function format12(hm) {
-  let [h, m] = hm.split(':').map(Number);
-  const ampm = h < 12 ? 'AM' : 'PM';
-  h = h % 12;
-  if (h === 0) h = 12;
-  return `${h}:${pad(m)} ${ampm}`;
-}
-
-// Populate the <select id="time"> with 30-min slots from 8:30 to 16:00
-function populateTimes() {
-  TIME.innerHTML = '';
-  for (let h = 8; h <= 16; h++) {
-    [0,30].forEach(m => {
-      if (h === 16 && m > 0) return;
-      const value = `${pad(h)}:${pad(m)}`;
-      const label = format12(value);
-      TIME.innerHTML += `<option value="${value}">${label}</option>`;
+  // GET: list bookings (with teacher_name & booking_location)
+  if (request.method === 'GET') {
+    const url = new URL(request.url);
+    const date = url.searchParams.get('date');
+    const baseQuery = `
+      SELECT
+        b.id,
+        b.teacher_id,
+        t.name        AS teacher_name,
+        b.booking_date,
+        b.start_time,
+        b.end_time,
+        b.parent_name,
+        b.parent_email,
+        b.student_name,
+        b.school_name,
+        b.booking_type,
+        b.booking_location
+      FROM Bookings b
+      JOIN Teachers t ON b.teacher_id = t.id
+    `;
+    const stmt = date
+      ? DB.prepare(baseQuery + ' WHERE booking_date = ?').bind(date)
+      : DB.prepare(baseQuery);
+    const { results } = await stmt.all();
+    return new Response(JSON.stringify(results), {
+      headers: { 'Content-Type': 'application/json' }
     });
   }
-}
 
-// As before: compute end = 30min after start
-function slotEnd(start) {
-  let [h,m] = start.split(':').map(Number);
-  m += 30; if (m >= 60) { h++; m -= 60; }
-  return `${pad(h)}:${pad(m)}`;
-}
+  // POST: create booking with pre-checks and robust insert error handling
+  if (request.method === 'POST') {
+    const {
+      teacher_id,
+      date,
+      start_time,
+      end_time,
+      parent_name,
+      parent_email,
+      student_name,
+      school_name,
+      booking_type
+    } = await request.json();
 
-async function safeFetchJson(url) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok || res.status === 204) return [];
-    const text = await res.text();
-    return text ? JSON.parse(text) : [];
-  } catch {
-    return [];
-  }
-}
+    // compute day-of-week for unavailability check
+    const dayOfWeek = new Date(date).getUTCDay();
 
-// Pull distinct locations from /api/teachers
-async function populateLocations() {
-  const teachers = await safeFetchJson('/api/teachers');
-  const locations = [...new Set(
-    teachers.map(t => t.location).filter(l => l)
-  )];
-  LOC_SELECT.innerHTML = locations
-    .map(l => `<option value="${l}">${l}</option>`)
-    .join('');
-}
-
-// Main availability search
-async function findTeachers() {
-  RESULTS.textContent = 'Loading…';
-  document.getElementById('available-heading').style.display = 'none';
-
-  let dow, start, end;
-  if (TYPE.value === 'zoom') {
-    dow   = +DAY1.value;
-    start = TIME.value;
-    end   = slotEnd(start);
-  } else {
-    dow = +DAY2.value;
-    if (SLOT_SELECT.value === 'am') {
-      start = '08:30'; end = '12:30';
-    } else {
-      start = '12:30'; end = '16:30';
+    // 1) Unavailability check
+    const { results: ua } = await DB.prepare(
+      `SELECT 1 FROM TeacherUnavailability
+         WHERE teacher_id = ?
+           AND day_of_week = ?
+           AND NOT (end_time <= ? OR start_time >= ?)
+         LIMIT 1`
+    )
+    .bind(teacher_id, dayOfWeek, start_time, end_time)
+    .all();
+    if (ua.length) {
+      return new Response(
+        JSON.stringify({ error: 'Sorry, the booking has already been taken' }),
+        { status: 409, headers: { 'Content-Type': 'application/json' } }
+      );
     }
+
+    // 2) Existing booking check
+    const { results: eb } = await DB.prepare(
+      `SELECT 1 FROM Bookings
+         WHERE teacher_id = ?
+           AND booking_date = ?
+           AND NOT (end_time <= ? OR start_time >= ?)
+         LIMIT 1`
+    )
+    .bind(teacher_id, date, start_time, end_time)
+    .all();
+    if (eb.length) {
+      return new Response(
+        JSON.stringify({ error: 'Sorry, the booking has already been taken' }),
+        { status: 409, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 3) Determine booking_location
+    let bookingLocation;
+    if (booking_type === 'zoom') {
+      bookingLocation = 'Zoom';
+    } else {
+      const { results: locRows } = await DB.prepare(
+        'SELECT location FROM Teachers WHERE id = ?'
+      )
+      .bind(teacher_id)
+      .all();
+      bookingLocation = locRows[0]?.location || '';
+    }
+
+    // 4) Insert booking — catch _any_ insert error as “taken”
+    const insertSQL = `
+      INSERT INTO Bookings
+        (teacher_id, booking_date, start_time, end_time,
+         parent_name, student_name, school_name,
+         parent_email, booking_type, booking_location)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    try {
+      await DB.prepare(insertSQL)
+        .bind(
+          teacher_id,
+          date,
+          start_time,
+          end_time,
+          parent_name,
+          student_name,
+          school_name,
+          parent_email,
+          booking_type,
+          bookingLocation
+        )
+        .run();
+    } catch (err) {
+      console.error('Booking insert error:', err);
+      return new Response(
+        JSON.stringify({ error: 'Sorry, the booking has already been taken' }),
+        { status: 409, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    return new Response(null, { status: 201 });
   }
 
-  const dateObj = new Date();
-  dateObj.setDate(dateObj.getDate() + ((dow + 7 - dateObj.getUTCDay()) % 7));
-  selDate  = dateObj;
-  selStart = start;
-  selEnd   = end;
-  const isoDate = dateObj.toISOString().slice(0,10);
-
-  const [teachers, unavail, bookings] = await Promise.all([
-    safeFetchJson('/api/teachers'),
-    safeFetchJson('/api/unavailability'),
-    safeFetchJson(`/api/bookings?date=${isoDate}`)
-  ]);
-
-  // Filter out unavailable/unbooked
-  let avail = teachers.filter(t => {
-    if (unavail.some(u =>
-      u.teacher_id === t.id &&
-      u.day_of_week === dow &&
-      !(end <= u.start_time || start >= u.end_time)
-    )) return false;
-    if (bookings.some(b =>
-      b.teacher_id === t.id &&
-      !(end <= b.start_time || start >= b.end_time)
-    )) return false;
-    return true;
-  });
-
-  // If in-person, filter by selected location
-  if (TYPE.value === 'inperson') {
-    avail = avail.filter(t => t.location === LOC_SELECT.value);
+  // DELETE: remove a booking by ID
+  if (request.method === 'DELETE') {
+    const { id } = await request.json();
+    await DB.prepare('DELETE FROM Bookings WHERE id = ?').bind(id).run();
+    return new Response(null, { status: 204 });
   }
 
-  if (!avail.length) {
-    RESULTS.innerHTML = '<p>No teachers available.</p>';
-    return;
-  }
-
-  document.getElementById('available-heading').style.display = 'block';
-  RESULTS.innerHTML = avail.map(t =>
-    `<button class="teacher-btn" data-id="${t.id}" data-name="${t.name}">${t.name}</button>`
-  ).join('');
-
-  RESULTS.querySelectorAll('.teacher-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      // mark selection
-      RESULTS.querySelectorAll('.teacher-btn').forEach(b=>b.classList.remove('selected'));
-      btn.classList.add('selected');
-
-      selectedTeacher = { id:+btn.dataset.id, name:btn.dataset.name };
-      TNAME.textContent = btn.dataset.name;
-      FORM_WR.style.display = 'block';
-    });
-  });
+  return new Response('Method Not Allowed', { status: 405 });
 }
-
-// Re-run on controls change
-TYPE.addEventListener('change', () => {
-  ZOOM_DIV.style.display = TYPE.value === 'zoom' ? 'block' : 'none';
-  INP_DIV.style.display  = TYPE.value === 'inperson' ? 'block' : 'none';
-  findTeachers();
-});
-DAY1.addEventListener('change', findTeachers);
-TIME.addEventListener('change', findTeachers);
-DAY2.addEventListener('change', findTeachers);
-SLOT_SELECT.addEventListener('change', findTeachers);
-LOC_SELECT.addEventListener('change', findTeachers);
-
-// Close popup reloads
-CLOSE.addEventListener('click', () => window.location.reload());
-
-// Booking form submission
-FORM.addEventListener('submit', async e => {
-  e.preventDefault();
-  const f = e.target;
-  const payload = {
-    teacher_id:       selectedTeacher.id,
-    date:             selDate.toISOString().slice(0,10),
-    start_time:       selStart,
-    end_time:         selEnd,
-    parent_name:      f.parent_name.value,
-    parent_email:     f.parent_email.value,
-    student_name:     f.student_name.value,
-    school_name:      f.school_name.value,
-    booking_type:     TYPE.value,
-    booking_location: TYPE.value === 'inperson' ? LOC_SELECT.value : 'Zoom'
-  };
-
-  const res = await fetch('/api/bookings', {
-    method:  'POST',
-    headers: { 'Content-Type':'application/json' },
-    body:    JSON.stringify(payload)
-  });
-
-  // Show success or conflict
-  const msg = res.status === 201
-    ? 'Booking created successfully!'
-    : 'Sorry, the booking has already been taken';
-  POPUP.querySelector('.modal-content p').textContent = msg;
-
-  POPUP.style.display   = 'flex';
-  FORM_WR.style.display = 'none';
-  RESULTS.innerHTML     = '';
-});
-
-// Initialize
-(async function init() {
-  populateTimes();
-  await populateLocations();
-  TYPE.dispatchEvent(new Event('change'));
-})();
