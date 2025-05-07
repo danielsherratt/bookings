@@ -35,7 +35,8 @@
 
           document.querySelector('th[for="staff-class"]')
           .textContent = `${staff_classification}:`;
-          document.querySelector('button[for="staff-class-btn"]')
+
+          document.getElementById('staff-class-btn')
           .textContent = `${staff_classification}:`;
 
       } catch (e) {
