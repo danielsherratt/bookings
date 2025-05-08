@@ -2,11 +2,63 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="css/styles.css"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Booking</title>
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css"/>
 
+  <!-- Preferences loader & dynamic adjustments -->
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await fetch('/api/preferences');
+        if (!res.ok) return;
+        const p = await res.json();
+        // expose prefs for booking.js
+        window.bookingPrefs = p;
+
+        // 1) Apply color scheme
+        document.documentElement.style.setProperty('--primary-color',   p.primary_color);
+        document.documentElement.style.setProperty('--secondary-color', p.secondary_color);
+
+        // 2) Set page heading & document title
+        document.getElementById('booking-header').textContent = p.page_heading;
+        document.title = p.page_heading;
+
+        // 3) Update Available heading
+        const availH = document.getElementById('available-heading');
+        availH.textContent = `Available ${p.staff_classification}s`;
+
+        // 4) Update booking-type option labels
+        const zoomOpt = document.querySelector('#type option[value="zoom"]');
+        if (zoomOpt) zoomOpt.textContent = `Zoom Session (${p.zoom_duration} min)`;
+
+        const inOpt = document.querySelector('#type option[value="inperson"]');
+        if (inOpt) {
+          inOpt.textContent = `${p.staff_classification} (${
+            p.inperson_duration % 60 === 0
+              ? (p.inperson_duration/60) + 'h'
+              : p.inperson_duration + ' min'
+          })`;
+        }
+
+        // 5) Show/hide options
+        if (!p.show_zoom && zoomOpt) {
+          zoomOpt.remove();
+          document.getElementById('zoom-controls').style.display = 'none';
+        }
+        if (!p.show_inperson && inOpt) {
+          inOpt.remove();
+          document.getElementById('inperson-controls').style.display = 'none';
+        }
+
+        // 6) Re-trigger type change to apply hide/show
+        document.getElementById('type').dispatchEvent(new Event('change'));
+      } catch (e) {
+        console.error('Could not load preferences', e);
+      }
+    });
+  </script>
 </head>
 <body>
   <div class="container">
@@ -54,7 +106,7 @@
       <label for="slot-select">Slot:</label>
       <select id="slot-select">
         <option value="am">AM (08:30–12:30)</option>
-        <option value="pm">PM (12:30–4:30)</option>
+        <option value="pm">PM (12:30–16:30)</option>
       </select>
 
       <label for="location-select">Location:</label>
@@ -66,7 +118,7 @@
 
     <!-- Booking form -->
     <div id="booking-form" style="display:none;">
-      <h2>Add Booking details with <span id="teacher-name"></span></h2>
+      <h2>Confirm Booking with <span id="teacher-name"></span></h2>
       <form id="form">
         <input name="parent_name"  type="text"  placeholder="Parent Name"   required><br>
         <input name="parent_email" type="email" placeholder="Parent Email"  required><br>
@@ -80,61 +132,11 @@
     <div id="confirmation-popup" class="modal" style="display:none;">
       <div class="modal-content">
         <button class="close-btn">&times;</button>
-        <br>
         <p>Booking created successfully!</p>
       </div>
     </div>
 
   </div>
-
-  <!-- Preferences loader & dynamic adjustments -->
-  <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      try {
-        const res = await fetch('/api/preferences');
-        if (!res.ok) return;
-        const p = await res.json();
-
-        // 1) Apply color scheme
-        document.documentElement.style.setProperty('--primary-color',   p.primary_color);
-        document.documentElement.style.setProperty('--secondary-color', p.secondary_color);
-
-        // 2) Set page heading & document title
-        document.getElementById('booking-header').textContent = p.page_heading;
-        document.title = p.page_heading;
-
-        // 3) Update Available heading
-        document.getElementById('available-heading').textContent =
-          `Available ${p.staff_classification}`;
-
-        // 4) Update booking-type option labels
-        const zoomOpt = document.querySelector('#type option[value="zoom"]');
-        if (zoomOpt) zoomOpt.textContent = `Zoom Session (${p.zoom_duration} min)`;
-
-        const inOpt = document.querySelector('#type option[value="inperson"]');
-        if (inOpt) inOpt.textContent = `${p.staff_classification} (${
-          p.inperson_duration % 60 === 0
-            ? (p.inperson_duration/60) + 'h'
-            : p.inperson_duration + ' min'
-        })`;
-
-        // 5) Show/hide options
-        if (!p.show_zoom && zoomOpt) {
-          zoomOpt.remove();
-          document.getElementById('zoom-controls').style.display = 'none';
-        }
-        if (!p.show_inperson && inOpt) {
-          inOpt.remove();
-          document.getElementById('inperson-controls').style.display = 'none';
-        }
-
-        // 6) Re-trigger type change to apply hide/show
-        document.getElementById('type').dispatchEvent(new Event('change'));
-      } catch (e) {
-        console.error('Could not load preferences', e);
-      }
-    });
-  </script>
 
   <script src="js/booking.js"></script>
 </body>
