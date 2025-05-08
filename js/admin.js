@@ -47,7 +47,7 @@ async function loadPreferences() {
     // Update headings & labels with classification
     const cls = p.staff_classification;
     document.getElementById('manage-teachers-heading')
-            .textContent = `Manage ${cls}s`;
+            .textContent = `Manage ${cls}`;
     document.getElementById('unavail-heading')
             .textContent = `Add ${cls} Unavailability`;
     document.getElementById('existing-unavail-heading')
