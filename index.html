@@ -35,7 +35,7 @@
 
         const inOpt = document.querySelector('#type option[value="inperson"]');
         if (inOpt) {
-          inOpt.textContent = `${p.staff_classification} (${
+          inOpt.textContent = `In Person (${
             p.inperson_duration % 60 === 0
               ? (p.inperson_duration/60) + 'h'
               : p.inperson_duration + ' min'
