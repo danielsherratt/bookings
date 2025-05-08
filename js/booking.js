@@ -124,7 +124,7 @@ async function findTeachers() {
   }
 
   if (!avail.length) {
-    RESULTS.innerHTML = '<p>No teachers available.</p>';
+    RESULTS.innerHTML = `<p>Sorry, we're not available</p>`;
     return;
   }
 
@@ -184,8 +184,8 @@ FORM.addEventListener('submit', async e => {
 
   POPUP.querySelector('p').textContent =
     res.status===201
-      ? 'Booking created successfully!'
-      : 'Sorry, the booking has already been taken';
+      ? 'Success! Ko Taku Reo will be in touch to confirm the booking'
+      : 'Sorry, the booking was just taken by someone else';
   POPUP.style.display = 'flex';
   FORM_WR.style.display = 'none';
   RESULTS.innerHTML = '';
