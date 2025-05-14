@@ -11,23 +11,23 @@
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       try {
-        const res = await fetch('/api/preferences');
-        if (!res.ok) return;
+       const res = await fetch('/api/preferences');
+       if (!res.ok) return;
         const p = await res.json();
         // expose prefs for booking.js
-        window.bookingPrefs = p;
+      window.bookingPrefs = p;
 
         // 1) Apply color scheme
-        document.documentElement.style.setProperty('--primary-color',   p.primary_color);
-        document.documentElement.style.setProperty('--secondary-color', p.secondary_color);
+      //  document.documentElement.style.setProperty('--primary-color',   p.primary_color);
+      //  document.documentElement.style.setProperty('--secondary-color', p.secondary_color);
 
         // 2) Set page heading & document title
-        document.getElementById('booking-header').textContent = p.page_heading;
-        document.title = p.page_heading;
+      //  document.getElementById('booking-header').textContent = p.page_heading;
+      //  document.title = p.page_heading;
 
         // 3) Update Available heading
-        const availH = document.getElementById('available-heading');
-        availH.textContent = `Pick an available ${p.staff_classification}`;
+       // const availH = document.getElementById('available-heading');
+       // availH.textContent = `Pick an available ${p.staff_classification}`;
 
         // 4) Update booking-type option labels
         const zoomOpt = document.querySelector('#type option[value="zoom"]');
@@ -69,7 +69,7 @@
     </div>
 
     <!-- Page Heading -->
-    <h1 id="booking-header">Book a Teacher</h1>
+    <h1 id="booking-header">NZSL Bookings</h1>
 
     <label for="type">Booking Type:</label>
     <select id="type">
