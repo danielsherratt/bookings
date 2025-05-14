@@ -124,7 +124,7 @@ async function findTeachers() {
   }
 
   if (!avail.length) {
-    RESULTS.innerHTML = `<p>Sorry, we're not available</p>`;
+    RESULTS.innerHTML = `<p>Sorry, no NZSL Tutor is available</p>`;
     return;
   }
 
